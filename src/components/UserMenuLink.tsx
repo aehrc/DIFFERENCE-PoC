@@ -1,6 +1,7 @@
 import useActivePage from "@/hooks/useActivePage.ts";
 import { useContext } from "react";
 import { FhirServerContext } from "@/contexts/FhirServerContext.tsx";
+import useSourceFhirServer from "@/hooks/useSourceFhirServer";
 
 interface UserMenuLinkProps {
   title: string;
@@ -10,8 +11,8 @@ interface UserMenuLinkProps {
 function UserMenuLink(props: UserMenuLinkProps) {
   const { title, path } = props;
   const { activePath, switchActivePage } = useActivePage();
-
-  let { fhirUser } = useContext(FhirServerContext);
+  const { serverUrl } = useSourceFhirServer();
+  let { fhirUser } = useContext(FhirServerContext)[serverUrl];
 
   // Disabled user menu link if fhirUser is Practitioner.
   // This makes it so that a logged in practitioner User cannot switch users

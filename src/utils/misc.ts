@@ -14,7 +14,7 @@ import type {
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { FHIR_SERVER_URL, FORMS_SERVER_URL } from "@/globals.ts";
+import { FHIR_SERVER_URL, FORMS_SERVER_URL, SECONDARY_FHIR_SERVER_URL } from "@/globals.ts";
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -25,7 +25,7 @@ const RE_MONTH_YEAR = /\d{4}-d{2}$/;
 export const QUERY_HEADERS = {
   "Content-Type": "application/fhir+json",
   Accept: "application/fhir+json",
-  "Cache-Control": "no-cache",
+  // "Cache-Control": "no-cache",
 };
 
 type FHIRPerson =
@@ -106,6 +106,10 @@ export function humanName(human: FHIRPerson, separator = " "): string {
 export function getFhirServerBaseUrl() {
   return FHIR_SERVER_URL;
 }
+export function getSecondaryFhirServerBaseUrl() {
+  return SECONDARY_FHIR_SERVER_URL;
+}
+
 
 export function getQuestionnaireServerBaseUrl() {
   return FORMS_SERVER_URL;

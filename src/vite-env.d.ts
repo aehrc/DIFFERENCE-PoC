@@ -25,9 +25,11 @@ declare module "*.jpg";
 interface ImportMetaEnv {
   // Source FHIR server
   readonly VITE_FHIR_SERVER_URL: string;
+  readonly VITE_SECONDARY_FHIR_SERVER_URL: string;
 
   // Determine if authorization is required
   readonly VITE_AUTH_REQUIRED: string;
+  readonly VITE_AUTH_REQUIRED_SECONDARY: string;
 
   // Launch parameter configuration
   readonly VITE_LAUNCH_PARAM_CONFIG: "default" | "proxy";
@@ -38,6 +40,10 @@ interface ImportMetaEnv {
   readonly VITE_OAUTH_GRANT_TYPE: string;
   readonly VITE_OAUTH_SCOPE: string;
   readonly VITE_OAUTH_CLIENT_ID: string;
+
+  readonly VITE_OAUTH_GRANT_TYPE_SECONDARY: string;
+  readonly VITE_OAUTH_SCOPE_SECONDARY: string;
+  readonly VITE_OAUTH_CLIENT_ID_SECONDARY: string;
 
   // Questionnaire repository configuration (optional, mainly used for launching Smart Forms)
   readonly VITE_FORMS_SERVER_URL: string;

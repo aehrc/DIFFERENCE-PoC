@@ -1,14 +1,12 @@
 import { Button } from "@/components/ui/button.tsx";
-import { OAUTH_CLIENT_ID, OAUTH_GRANT_TYPE, OAUTH_SCOPE } from "@/globals.ts";
+import { OAUTH } from "@/globals.ts";
 import { getFhirServerBaseUrl } from "@/utils/misc.ts";
 import useSampleRequestTokenMethod from "@/hooks/useRequestTokenClientCredentials.ts";
 
 // This is a sample implementation of a React functional component for your own OAuth2.0 methods, does not work out of the box
 
-const clientId = OAUTH_CLIENT_ID;
-const scope = OAUTH_SCOPE;
 const aud = getFhirServerBaseUrl();
-const grantType = OAUTH_GRANT_TYPE;
+const { clientId, scope, grantType } = OAUTH;
 // Add other parameters here as required
 
 function SampleAuthMethod() {
@@ -16,6 +14,7 @@ function SampleAuthMethod() {
 
   // Sample token request hook, does not work out of the box
   const { tokenStatus } = useSampleRequestTokenMethod({
+    baseUrl: aud,
     grantType,
     scope,
     aud,

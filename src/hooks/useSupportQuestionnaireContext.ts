@@ -1,7 +1,9 @@
 import useSmartConfiguration from "@/hooks/useSmartConfiguration.ts";
+import useSourceFhirServer from "./useSourceFhirServer";
 
 export function useSupportQuestionnaireContext() {
-  const smartConfiguration = useSmartConfiguration();
+  const { serverUrl } = useSourceFhirServer();
+  const smartConfiguration = useSmartConfiguration(serverUrl);
 
   let scopes: string[] = [];
   if (smartConfiguration) {

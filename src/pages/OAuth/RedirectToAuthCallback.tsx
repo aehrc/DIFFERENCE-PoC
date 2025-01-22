@@ -1,7 +1,11 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-function RedirectToAuthCallback() {
+interface RedirectToAuthCallbackProps {
+  baseUrl: string;
+}
+
+function RedirectToAuthCallback({ baseUrl }: RedirectToAuthCallbackProps) {
   const [searchParams] = useSearchParams();
 
   const navigate = useNavigate();
@@ -10,6 +14,7 @@ function RedirectToAuthCallback() {
     navigate("/authcallback");
     // Save state to session storage
     sessionStorage.setItem("initialSearchParams", searchParams.toString());
+    sessionStorage.setItem("baseUrl", baseUrl);
   }, [navigate, searchParams]);
 
   return (

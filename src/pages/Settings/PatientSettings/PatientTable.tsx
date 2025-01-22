@@ -29,7 +29,11 @@ import { PatientContext } from "@/contexts/PatientContext.tsx";
 import useFetchPatients from "@/hooks/useFetchPatients.ts";
 import { EncounterContext } from "@/contexts/EncounterContext.tsx";
 
-function PatientTable() {
+interface PatientTableProps {
+  updateQueryOnSelection?: boolean;
+}
+
+function PatientTable({updateQueryOnSelection = true}: PatientTableProps) {
   const { selectedPatient, setSelectedPatient } = useContext(PatientContext);
   const { setSelectedEncounter } = useContext(EncounterContext);
   const { setQuery } = useLauncherQuery();
@@ -69,14 +73,16 @@ function PatientTable() {
     // Set selected patient and set query
     setSelectedPatient(newPatient);
     setSelectedEncounter(null);
-    setQuery({
-      patient: newPatient.id,
-      encounter: undefined,
-    });
-    enqueueSnackbar(`Patient set to ${humanName(newPatient)} `, {
-      variant: "success",
-      autoHideDuration: 3000,
-    });
+    if (updateQueryOnSelection) {
+      setQuery({
+        patient: newPatient.id,
+        encounter: undefined,
+      });
+      enqueueSnackbar(`Patient set to ${humanName(newPatient)} `, {
+        variant: "success",
+        autoHideDuration: 3000,
+      });
+    }
   }
 
   return (

@@ -25,7 +25,7 @@ export async function verifyFhirServer(
     const requestUrl = endpointUrl + "metadata";
     const response = await fetch(requestUrl, {
       headers: {
-        "Cache-Control": "no-cache",
+        // "Cache-Control": "no-cache",
         "Content-Type": "application/fhir+json;charset=utf-8",
       },
     });

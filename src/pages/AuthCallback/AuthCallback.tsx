@@ -1,23 +1,23 @@
 import useValidateCodeAndState from "@/hooks/useValidateCodeAndState.ts";
-import { OAUTH_CLIENT_ID, OAUTH_GRANT_TYPE, OAUTH_SCOPE } from "@/globals.ts";
-import { getFhirServerBaseUrl } from "@/utils/misc.ts";
+import { OAUTH, OAUTH_SECONDARY } from "@/globals.ts";
+import { getFhirServerBaseUrl, getSecondaryFhirServerBaseUrl } from "@/utils/misc.ts";
 import { Button } from "@/components/ui/button.tsx";
 import useRequestTokenCode from "@/hooks/useRequestTokenCode.ts";
 import useAuthorize from "@/hooks/useAuthorize.ts";
 
 const responseType = "code";
-const clientId = OAUTH_CLIENT_ID;
-const scope = OAUTH_SCOPE;
-const aud = getFhirServerBaseUrl();
-const grantType = OAUTH_GRANT_TYPE;
 
 function AuthCallback() {
   const { protocol, host } = window.location;
 
+  const baseUrl = sessionStorage.getItem("baseUrl") ?? getFhirServerBaseUrl();
+
+  const { clientId, scope, grantType } = baseUrl === getSecondaryFhirServerBaseUrl() ? OAUTH_SECONDARY : OAUTH;
+
   const redirectUri = `${protocol}//${host}/authcallback`;
 
   // Check if code and state are present/valid
-  const { code, stateIsValid } = useValidateCodeAndState();
+  const { code, stateIsValid } = useValidateCodeAndState(baseUrl);
 
   // Perform authorize() if code missing or state is invalid
   const { authorizeStatus } = useAuthorize({
@@ -25,12 +25,13 @@ function AuthCallback() {
     clientId,
     redirectUri,
     scope,
-    aud,
+    aud: baseUrl,
     enabled: !stateIsValid,
   });
 
   // Perform token() if authorisation is complete i.e. code and state are valid
   const { tokenStatus } = useRequestTokenCode({
+    baseUrl,
     grantType,
     code,
     redirectUri,

@@ -17,12 +17,14 @@ import { Separator } from "@/components/ui/separator.tsx";
 import { useContext } from "react";
 import { QuestionnaireContext } from "@/contexts/QuestionnaireContext.tsx";
 import { FhirServerContext } from "@/contexts/FhirServerContext.tsx";
+import useSourceFhirServer from "@/hooks/useSourceFhirServer";
 
 function SettingsOverview() {
+  const { serverUrl } = useSourceFhirServer();
   const { launch } = useLauncherQuery();
   const { selectedQuestionnaire } = useContext(QuestionnaireContext);
 
-  let { fhirUser } = useContext(FhirServerContext);
+  let { fhirUser } = useContext(FhirServerContext)[serverUrl];
 
   // Disabled user switching if fhirUser is Practitioner.
   // This makes it so that a logged in practitioner User cannot switch users.

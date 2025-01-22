@@ -9,6 +9,7 @@ import { FhirServerContext } from "@/contexts/FhirServerContext.tsx";
 // It does not work out of the box and requires you to replace the fetch method with your own.
 
 interface useSampleRequestTokenMethodProps {
+  baseUrl: string;
   grantType: string;
   scope: string;
   aud: string;
@@ -21,15 +22,15 @@ export function useSampleRequestTokenMethod(
 ): {
   tokenStatus: "loading" | "error";
 } {
-  const { grantType, scope, aud, clientId } = props;
+  const { baseUrl, grantType, scope, aud, clientId } = props;
 
-  const { setTokenEndpoint, setTokenResponse } = useContext(FhirServerContext);
+  const { setTokenEndpoint, setTokenResponse } = useContext(FhirServerContext)[baseUrl];
 
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
 
   // Get token endpoint
-  const smartConfiguration = useSmartConfiguration();
+  const smartConfiguration = useSmartConfiguration(baseUrl);
 
   const tokenEndpoint = useMemo(() => {
     if (smartConfiguration) {

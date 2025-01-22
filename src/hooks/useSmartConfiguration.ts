@@ -1,12 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { getFhirServerBaseUrl } from "@/utils/misc.ts";
 import { SmartConfiguration } from "@/api/fhirApi.ts";
 
-function useSmartConfiguration(): SmartConfiguration | null {
-  const { data: smartConfiguration } = useQuery(["smart-configuration"], () =>
+function useSmartConfiguration(baseUrl: string): SmartConfiguration | null {
+  const { data: smartConfiguration } = useQuery([baseUrl, "smart-configuration"], () =>
     axios
-      .get(getFhirServerBaseUrl() + "/.well-known/smart-configuration")
+      .get(baseUrl + "/.well-known/smart-configuration")
       .then((res) => res.data)
   );
 

@@ -2,19 +2,22 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { useContext } from "react";
 import { FhirServerContext } from "@/contexts/FhirServerContext.tsx";
-import { OAUTH_CLIENT_ID } from "@/globals.ts";
+import { OAUTH, OAUTH_SECONDARY } from "@/globals.ts";
 import { responseIsTokenResponse, TokenResponse } from "@/utils/oauth.ts";
+import useSourceFhirServer from "./useSourceFhirServer";
+import { getSecondaryFhirServerBaseUrl } from "@/utils/misc";
 
 async function refreshAccessToken(
   tokenEndpoint: string,
-  refreshToken: string
+  refreshToken: string,
+  client_id: string
 ): Promise<TokenResponse | null> {
   const response = await fetch(tokenEndpoint, {
     method: "POST",
     body: new URLSearchParams({
       grant_type: "refresh_token",
       refresh_token: refreshToken,
-      client_id: OAUTH_CLIENT_ID,
+      client_id,
     }),
   });
 
@@ -33,16 +36,17 @@ async function refreshAccessToken(
 }
 
 function useAxios() {
+  const { serverUrl } = useSourceFhirServer();
+  const { clientId } = serverUrl === getSecondaryFhirServerBaseUrl() ? OAUTH_SECONDARY : OAUTH;
   const {
-    baseUrl,
     tokenEndpoint,
     accessToken,
     refreshToken,
     setTokenResponse,
-  } = useContext(FhirServerContext);
+  } = useContext(FhirServerContext)[serverUrl];
 
   const axiosInstance = axios.create({
-    baseURL: baseUrl,
+    baseURL: serverUrl,
   });
 
   axiosInstance.interceptors.request.use(
@@ -57,7 +61,8 @@ function useAxios() {
             try {
               const newTokenResponse = await refreshAccessToken(
                 tokenEndpoint,
-                refreshToken
+                refreshToken,
+                clientId
               );
 
               if (newTokenResponse) {
@@ -66,6 +71,7 @@ function useAxios() {
               }
             } catch (error) {
               console.error("Failed to refresh token", error);
+              setTokenResponse(null);
             }
           }
         }

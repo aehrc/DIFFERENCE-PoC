@@ -6,6 +6,7 @@ import { useSnackbar } from "notistack";
 import { FhirServerContext } from "@/contexts/FhirServerContext.tsx";
 
 interface useRequestTokenProps {
+  baseUrl: string;
   grantType: string;
   code: string | null;
   redirectUri: string;
@@ -15,15 +16,15 @@ interface useRequestTokenProps {
 export function useRequestTokenCode(props: useRequestTokenProps): {
   tokenStatus: "loading" | "error";
 } {
-  const { grantType, code, redirectUri, clientId } = props;
+  const { baseUrl, grantType, code, redirectUri, clientId } = props;
 
-  const { setTokenEndpoint, setTokenResponse } = useContext(FhirServerContext);
+  const { setTokenEndpoint, setTokenResponse } = useContext(FhirServerContext)[baseUrl];
 
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
 
   // Get token endpoint
-  const smartConfiguration = useSmartConfiguration();
+  const smartConfiguration = useSmartConfiguration(baseUrl);
 
   const tokenEndpoint = useMemo(() => {
     if (smartConfiguration) {

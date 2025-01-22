@@ -16,7 +16,7 @@ function UserNavProfile() {
   const { query, launch, setQuery } = useLauncherQuery();
   const { serverUrl } = useSourceFhirServer();
 
-  const { fhirUser } = useContext(FhirServerContext);
+  const { fhirUser } = useContext(FhirServerContext)[serverUrl];
   const { selectedUser, setSelectedUser } = useContext(UserContext);
 
   let userId = launch.provider ?? "";

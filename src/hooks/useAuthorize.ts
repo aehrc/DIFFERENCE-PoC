@@ -23,7 +23,7 @@ export function useAuthorize(props: useAuthorizeProps): {
   } = props;
 
   // Get authorize endpoint
-  const smartConfiguration = useSmartConfiguration();
+  const smartConfiguration = useSmartConfiguration(aud);
 
   const authorizationEndpoint = useMemo(() => {
     if (smartConfiguration) {
@@ -48,7 +48,14 @@ export function useAuthorize(props: useAuthorizeProps): {
       const state = createNonce();
 
       // Save state to session storage
-      sessionStorage.setItem("state", state);
+      let stateObj;
+      try {
+        stateObj = JSON.parse(sessionStorage.getItem("state") ?? "");
+      } catch (error) {
+        stateObj = {};
+      }
+      stateObj[aud] = state;
+      sessionStorage.setItem("state", JSON.stringify(stateObj));
 
       // Manually encode scope
       const encodedScope = encodeURIComponent(scope);
