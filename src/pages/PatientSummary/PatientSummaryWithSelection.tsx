@@ -11,7 +11,7 @@ function PatientSummaryWithSelection() {
   return (
     selectedPatient ? (
       <div className="grid gap-6">
-      <PatientDetails patient={selectedPatient} />
+      <PatientDetails />
 
       <Button
         variant="outline"

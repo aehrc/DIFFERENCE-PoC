@@ -4,7 +4,6 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs.tsx";
-import { Patient } from "fhir/r4";
 import PatientProfile from "@/pages/PatientSummary/PatientTabs/PatientProfile.tsx";
 import PatientProfileLoading from "@/pages/PatientSummary/PatientTabs/PatientProfileLoading.tsx";
 import PatientConditions from "@/pages/PatientSummary/PatientTabs/PatientConditions.tsx";
@@ -14,13 +13,12 @@ import PatientProcedures from "@/pages/PatientSummary/PatientTabs/PatientProcedu
 import PatientImmunizations from "@/pages/PatientSummary/PatientTabs/PatientImmunizations.tsx";
 import PatientEncounters from "@/pages/PatientSummary/PatientTabs/PatientEncounters.tsx";
 import PatientObservations from "@/pages/PatientSummary/PatientTabs/PatientObservations.tsx";
+import { PatientContext } from "@/contexts/PatientContext";
+import { useContext } from "react";
 
-interface PatientDetailsProps {
-  patient: Patient | null;
-}
 
-function PatientDetails(props: PatientDetailsProps) {
-  const { patient } = props;
+function PatientDetails() {
+  const { selectedPatient: patient } = useContext(PatientContext);
 
   return (
     <main className="grid flex-1 items-start gap-4 sm:py-0 md:gap-8">
