@@ -4,6 +4,7 @@ import { getFhirServerBaseUrl, getSecondaryFhirServerBaseUrl } from "@/utils/mis
 import { Button } from "@/components/ui/button.tsx";
 import useRequestTokenCode from "@/hooks/useRequestTokenCode.ts";
 import useAuthorize from "@/hooks/useAuthorize.ts";
+import useValidateAuthorization from "@/hooks/useValidateAuthorization";
 
 const responseType = "code";
 
@@ -19,6 +20,9 @@ function AuthCallback() {
   // Check if code and state are present/valid
   const { code, stateIsValid } = useValidateCodeAndState(baseUrl);
 
+  // Check if there has been an error while authorizing
+  const { authorizationError } = useValidateAuthorization();
+
   // Perform authorize() if code missing or state is invalid
   const { authorizeStatus } = useAuthorize({
     responseType,
@@ -26,7 +30,7 @@ function AuthCallback() {
     redirectUri,
     scope,
     aud: baseUrl,
-    enabled: !stateIsValid,
+    enabled: !authorizationError && !stateIsValid,
   });
 
   // Perform token() if authorisation is complete i.e. code and state are valid
@@ -38,7 +42,7 @@ function AuthCallback() {
     clientId,
   });
 
-  if (authorizeStatus === "error") {
+  if (authorizeStatus === "error" || authorizationError) {
     return (
       <div className="container flex items-center h-screen mx-auto">
         <div>
@@ -49,8 +53,11 @@ function AuthCallback() {
             We are unable to authorise your request
           </h1>
           <p className="mt-4 text-gray-500 dark:text-gray-400">
-            It is likely that an authorisation endpoint is not available at the
-            source server.
+            {
+              authorizationError ?? 
+              "It is likely that an authorisation endpoint is not available at the source server."
+            }
+            
           </p>
 
           <div className="flex items-center mt-6 gap-x-3">
