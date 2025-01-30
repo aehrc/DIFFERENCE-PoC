@@ -5,9 +5,14 @@ import PatientDetails from "@/pages/PatientSummary/PatientDetails.tsx";
 import SourceFhirServerContextProvider from "@/contexts/SourceFhirServerContext.tsx";
 import { getSecondaryFhirServerBaseUrl } from "@/utils/misc.ts";
 import PatientSummaryWithSelection from "./PatientSummaryWithSelection.tsx";
+import ConnectToSecondaryServerButton from "./ConnectToSecondaryServerButton.tsx";
+import { FhirServerContext } from "@/contexts/FhirServerContext.tsx";
+import { AUTH_REQUIRED_SECONDARY } from "@/globals.ts";
 
 function PatientSummary() {
   const { selectedPatient } = useContext(PatientContext);
+  const secondaryFhirServerContext = useContext(FhirServerContext)[getSecondaryFhirServerBaseUrl()];
+  const secondaryAuthMissing = getSecondaryFhirServerBaseUrl() && AUTH_REQUIRED_SECONDARY && !secondaryFhirServerContext?.accessToken;
 
   let secondaryPatientId: string | undefined;
   if (selectedPatient && getSecondaryFhirServerBaseUrl()) {
@@ -24,8 +29,11 @@ function PatientSummary() {
         <div className="grid gap-6">
           <PatientCard patient={selectedPatient} />
           <div className="grid grid-flow-col auto-cols-fr gap-6">
-            <PatientDetails />
-            {getSecondaryFhirServerBaseUrl() ? (
+            <div className="grid gap-6">
+              <PatientDetails />
+              {secondaryAuthMissing ? <ConnectToSecondaryServerButton /> : null}
+            </div>
+            {getSecondaryFhirServerBaseUrl() && !secondaryAuthMissing ? (
               <SourceFhirServerContextProvider fhirServerUrl={getSecondaryFhirServerBaseUrl()}>
                 <PatientContextProvider patientId={secondaryPatientId}>
                   {secondaryPatientId ? (
