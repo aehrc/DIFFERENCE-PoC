@@ -1,0 +1,37 @@
+flowchart TD
+  subgraph "Stack1 (Network: stack1)"
+    HAPI1["HAPI Server 1<br>(us-docker.pkg.dev/fhir-proxy-build/stable/hapi-synthea:latest)<br>Ports: 8081→8080"]
+    FG1["FHIR Gateway 1<br>(us-docker.pkg.dev/fhir-proxy-build/stable/fhir-gateway:latest)<br>Ports: 8090→8080"]
+    KC1["Keycloak 1<br>(quay.io/alvearie/smart-keycloak:latest)<br>Ports: ${HTTP_PORT1}→8080, ${HTTPS_PORT1}→8443"]
+    SC1["Smart Config 1<br>(alvearie/keycloak-config)"]
+    PC1["Proxy Config 1<br>(us-docker.pkg.dev/fhir-proxy-build/stable/keycloak-config:latest)"]
+  end
+
+  subgraph "Stack2 (Network: stack2)"
+    HAPI2["HAPI Server 2<br>(us-docker.pkg.dev/fhir-proxy-build/stable/hapi-synthea:latest)<br>Ports: 8081→8080"]
+    FG2["FHIR Gateway 2<br>(us-docker.pkg.dev/fhir-proxy-build/stable/fhir-gateway:latest)<br>Ports: 8090→8080"]
+    KC2["Keycloak 2<br>(quay.io/alvearie/smart-keycloak:latest)<br>Ports: ${HTTP_PORT2}→8080, ${HTTPS_PORT2}→8443"]
+    SC2["Smart Config 2<br>(alvearie/keycloak-config)"]
+    PC2["Proxy Config 2<br>(us-docker.pkg.dev/fhir-proxy-build/stable/keycloak-config:latest)"]
+  end
+
+  External["External Clients<br>(SMART Apps, Admin Interfaces)"]
+
+  %% Stack1 interactions
+  FG1 -- "Proxies FHIR requests to" --> HAPI1
+  FG1 -- "Validates tokens via" --> KC1
+  SC1 -- "Configures" --> KC1
+  PC1 -- "Sets policy for" --> KC1
+  
+  %% Stack2 interactions
+  FG2 -- "Proxies FHIR requests to" --> HAPI2
+  FG2 -- "Validates tokens via" --> KC2
+  SC2 -- "Configures" --> KC2
+  PC2 -- "Sets policy for" --> KC2
+
+  %% External access
+  External -- "FHIR Requests" --> FG1
+  External -- "FHIR Requests" --> FG2
+  External -- "Admin/Token Requests" --> KC1
+  External -- "Admin/Token Requests" --> KC2
+

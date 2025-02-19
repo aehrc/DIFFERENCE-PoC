@@ -1,0 +1,72 @@
+
+# Parameters
+#
+# FHIR_PORT1: The port on the host machine to expose the FHIR Info Gateway on.
+# KC_PORT1: The port on the host machine to expose the Keycloak server on.
+# LCS_PORT1: The port on the host machine to expose the Keycloak server on.
+#
+
+services:
+  # ----- STACK 1 -----
+  hapi-server1:
+    image: us-docker.pkg.dev/fhir-proxy-build/stable/hapi-synthea:latest
+    ports:
+      - "${HAPI_PORT1}:8080"    # Exposes HAPI server on host port 8081 for debugging
+    volumes:
+      - /tmp/
+
+  fhir-gateway1:
+    image: us-docker.pkg.dev/fhir-proxy-build/stable/fhir-gateway:latest
+    depends_on:
+      - hapi-server1
+      - keycloak1
+#      proxy-config1:
+#        condition: service_completed_successfully
+    environment:
+      - TOKEN_ISSUER=http://keycloak1:8080/auth/realms/${TEST_REALM}
+      - PROXY_TO=http://hapi-server1:8080/fhir
+      - BACKEND_TYPE=HAPI
+      - RUN_MODE=DEV
+      - ACCESS_CHECKER=list
+    ports:
+      - "${FHIR_PORT1}:8080"    # Exposes FHIR Info Gateway on host port 8090
+
+  keycloak1:
+    image: quay.io/alvearie/smart-keycloak:latest
+    ports:
+      - "${KC_PORT1}:8080"
+      - "${KCS_PORT1}:8443"
+    environment:
+      - KEYCLOAK_USER
+      - KEYCLOAK_PASSWORD
+    healthcheck:
+      test: curl --fail http://localhost:8080/auth/realms/master
+      start_period: 35s
+      interval: 10s
+      retries: 5
+      timeout: 10s
+
+  smart-config1:
+    image: alvearie/keycloak-config
+    depends_on:
+      keycloak1:
+        condition: service_healthy
+    environment:
+      - KEYCLOAK_BASE_URL=http://keycloak1:8080/auth
+      - KEYCLOAK_USER
+      - KEYCLOAK_PASSWORD
+      - KEYCLOAK_REALM=${SMART_REALM:-dummy-smart}
+
+  proxy-config1:
+    image: us-docker.pkg.dev/fhir-proxy-build/stable/keycloak-config:latest
+    depends_on:
+      smart-config1:
+        condition: service_completed_successfully
+    environment:
+      - KEYCLOAK_BASE_URL=http://keycloak1:8080/auth
+      - KEYCLOAK_USER
+      - KEYCLOAK_PASSWORD
+      - TEST_REALM
+      - TEST_USER
+      - TEST_PASS
+      - SMART_REALM

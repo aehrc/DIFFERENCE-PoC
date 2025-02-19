@@ -1,0 +1,228 @@
+
+version: "3.8"
+
+# Parameters
+#
+# FHIR_PORT1: The port on the host machine to expose the FHIR Info Gateway on.
+# KC_PORT1: The port on the host machine to expose the Keycloak server on.
+# LCS_PORT1: The port on the host machine to expose the Keycloak server on.
+#
+# FHIR_PORT2: The port on the host machine to expose the FHIR Info Gateway on.
+# KC_PORT2: The port on the host machine to expose the Keycloak server on.
+# KCS_PORT2: The port on the host machine to expose the Keycloak server on.
+
+
+services:
+  # ----- STACK 1 -----
+  hapi-server1:
+    image: hapiproject/hapi:latest
+    depends_on:
+      - hapi-fhir-postgres1
+#    restart: on-failure
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://hapi-fhir-postgres1:5432/hapi"
+      SPRING_DATASOURCE_USERNAME: "admin"
+      SPRING_DATASOURCE_PASSWORD: "admin"
+      SPRING_DATASOURCE_DRIVERCLASSNAME: "org.postgresql.Driver"
+    ports:
+      - "${HAPI_PORT1}:8080"    # Exposes unsecured HAPI server on host port for debugging
+    networks:
+      - stack1
+  hapi-fhir-postgres1:
+    image: postgres:15-alpine
+    # restart: always
+    environment:
+      POSTGRES_DB: "hapi"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "admin"
+    volumes:
+      - hapi-fhir-postgres1:/var/lib/postgresql/data
+    networks:
+      - stack1
+  
+  fhir-gateway1:
+    image: us-docker.pkg.dev/fhir-proxy-build/stable/fhir-gateway:latest
+    depends_on:
+      # hapi-server1:
+      # keycloak1:
+      proxy-config1:
+        condition: service_completed_successfully
+    environment:
+      - TEST_REALM
+      - TOKEN_ISSUER=http://keycloak1:8080/auth/realms/${TEST_REALM}
+      - PROXY_TO=http://hapi-server1:8080/fhir
+      - BACKEND_TYPE=HAPI
+      - RUN_MODE=DEV
+      - ACCESS_CHECKER=list
+      - SPRING_CONFIG_LOCATION=/config/application.yaml
+      - JAVA_OPTS=-Djavax.net.ssl.keyStore=/certs/keystore.jks -Djavax.net.ssl.keyStorePassword=changeit -Djavax.net.ssl.trustStore=/certs/truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Djavax.net.debug=all
+    ports:
+      - "${FHIR_PORT1}:8080"    # Exposes FHIR Info Gateway on host port
+    volumes:
+      - ./config:/config
+      - ./certs:/certs
+    entrypoint: ["/bin/sh", "-c", "java $JAVA_OPTS -jar /fhir-gateway-exec.jar --server.port=$PROXY_PORT"]
+    networks:
+      - stack1
+
+  keycloak1:
+    image: quay.io/alvearie/smart-keycloak:latest
+    ports:
+      - "${KC_PORT1}:8080"
+      - "${KCS_PORT1}:8443"
+    environment:
+      - KEYCLOAK_USER
+      - KEYCLOAK_PASSWORD
+      - SPRING_CONFIG_LOCATION=/config/application.yaml
+    volumes:
+      - ./config:/config
+      - ./certs:/certs
+    healthcheck:
+      test: curl --fail http://localhost:8080/auth/realms/master
+      start_period: 35s
+      interval: 10s
+      retries: 5
+      timeout: 10s
+    networks:
+      - stack1
+
+  smart-config1:
+    image: alvearie/keycloak-config
+    depends_on:
+      keycloak1:
+        condition: service_healthy
+    environment:
+      - KEYCLOAK_BASE_URL=http://keycloak1:8080/auth
+      - KEYCLOAK_USER
+      - KEYCLOAK_PASSWORD
+      - KEYCLOAK_REALM=${SMART_REALM:-dummy-smart}
+    networks:
+      - stack1
+
+  proxy-config1:
+    image: us-docker.pkg.dev/fhir-proxy-build/stable/keycloak-config:latest
+    depends_on:
+      smart-config1:
+        condition: service_completed_successfully
+    environment:
+      - KEYCLOAK_BASE_URL=http://keycloak1:8080/auth
+      - KEYCLOAK_USER
+      - KEYCLOAK_PASSWORD
+      - TEST_REALM
+      - TEST_USER
+      - TEST_PASS
+      - SMART_REALM
+    networks:
+      - stack1
+
+  # ----- STACK 2 -----
+  hapi-server2:
+    image: hapiproject/hapi:latest
+    depends_on:
+      - hapi-fhir-postgres2
+#    restart: on-failure
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://hapi-fhir-postgres2:5432/hapi"
+      SPRING_DATASOURCE_USERNAME: "admin"
+      SPRING_DATASOURCE_PASSWORD: "admin"
+      SPRING_DATASOURCE_DRIVERCLASSNAME: "org.postgresql.Driver"
+    ports:
+      - "${HAPI_PORT2}:8080"    # Exposes unsecured HAPI server on host port for debugging
+    networks:
+      - stack2
+  hapi-fhir-postgres2:
+    image: postgres:15-alpine
+    # restart: always
+    environment:
+      POSTGRES_DB: "hapi"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "admin"
+    volumes:
+      - hapi-fhir-postgres2:/var/lib/postgresql/data
+    networks:
+      - stack2
+
+  fhir-gateway2:
+    image: us-docker.pkg.dev/fhir-proxy-build/stable/fhir-gateway:latest
+    depends_on:
+      # hapi-server2:
+      # keycloak2:
+      proxy-config2:
+        condition: service_completed_successfully
+    environment:
+      - TEST_REALM
+      - TOKEN_ISSUER=http://keycloak2:8080/auth/realms/${TEST_REALM}
+      - PROXY_TO=http://hapi-server2:8080/fhir
+      - BACKEND_TYPE=HAPI
+      - RUN_MODE=DEV
+      - ACCESS_CHECKER=list
+      - SPRING_CONFIG_LOCATION=/config/application.yaml
+      - JAVA_OPTS=-Djavax.net.ssl.keyStore=/certs/keystore.jks -Djavax.net.ssl.keyStorePassword=changeit -Djavax.net.ssl.trustStore=/certs/truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Djavax.net.debug=all
+    ports:
+      - "${FHIR_PORT2}:8080"    # Exposes FHIR Info Gateway on host port
+    volumes:
+      - ./config:/config
+      - ./certs:/certs
+    entrypoint: ["/bin/sh", "-c", "java $JAVA_OPTS -jar /fhir-gateway-exec.jar --server.port=$PROXY_PORT"]
+    networks:
+      - stack2
+
+  keycloak2:
+    image: quay.io/alvearie/smart-keycloak:latest
+    ports:
+      - "${KC_PORT2}:8080"
+      - "${KCS_PORT2}:8443"
+    environment:
+      - KEYCLOAK_USER
+      - KEYCLOAK_PASSWORD
+      - SPRING_CONFIG_LOCATION=/config/application.yaml
+    volumes:
+      - ./config:/config
+      - ./certs:/certs
+    healthcheck:
+      test: curl --fail http://localhost:8080/auth/realms/master
+      start_period: 35s
+      interval: 10s
+      retries: 5
+      timeout: 10s
+    networks:
+      - stack2
+
+  smart-config2:
+    image: alvearie/keycloak-config
+    depends_on:
+      keycloak2:
+        condition: service_healthy
+    environment:
+      - KEYCLOAK_BASE_URL=http://keycloak2:8080/auth
+      - KEYCLOAK_USER
+      - KEYCLOAK_PASSWORD
+      - KEYCLOAK_REALM=${SMART_REALM:-dummy-smart}
+    networks:
+      - stack2
+
+  proxy-config2:
+    image: us-docker.pkg.dev/fhir-proxy-build/stable/keycloak-config:latest
+    depends_on:
+      smart-config2:
+        condition: service_completed_successfully
+    environment:
+      - KEYCLOAK_BASE_URL=http://keycloak2:8080/auth
+      - KEYCLOAK_USER
+      - KEYCLOAK_PASSWORD
+      - TEST_REALM
+      - TEST_USER
+      - TEST_PASS
+      - SMART_REALM
+    networks:
+      - stack2
+
+networks:
+  stack1:
+    driver: bridge
+  stack2:
+    driver: bridge
+
+volumes:
+  hapi-fhir-postgres1:
+  hapi-fhir-postgres2:

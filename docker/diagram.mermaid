@@ -1,0 +1,48 @@
+flowchart TD
+  subgraph "IUIH Domain"
+    HAPI1["FHIR Server<br>(HAPI)"]
+    LOAD1@{ shape: docs, label: "Data load" }
+    DB1[("Postgres DB")]
+    FG1["API Gateway<br>(OpenHealthStack)"]
+    KC1["Authorisation Server<br>(Keycloak)"]
+    SC1[["SMART Config"]]
+    PC1[["Authorisation Config"]]
+  end
+
+  subgraph "Mater Domain"
+    HAPI2["FHIR Server<br>(HAPI)"]
+    LOAD2@{ shape: docs, label: "Data load" }
+    DB2[("Postgres DB")]
+    FG2["API Gateway<br>(OpenHealthStack)"]
+    KC2["Authorisation Server<br>(Keycloak)"]
+    SC2[["SMART Config"]]
+    PC2[["Authorisation Config"]]
+  end
+
+  External["External Client(s)<br>(SMART Apps, etc)"]
+
+  %% Stack1 interactions
+  HAPI1 --> DB1
+  FG1 -- "Permitted FHIR requests" --> HAPI1
+  FG1 -- "Validates tokens via" --> KC1
+  LOAD1 -.-> HAPI1
+%%   SC1 -. "Configures" .- KC1
+%%   PC1 -. "Sets policy for" .- KC1
+%%  PC1 -. "depends on" .-> SC1
+
+  %% Stack2 interactions
+  HAPI2 --> DB2
+  FG2 -- "Permitted FHIR requests" --> HAPI2
+  FG2 -- "Validates tokens via" --> KC2
+  LOAD2 -.-> HAPI2
+%%  SC2 -. "Configures" .-> KC2
+%%  PC2 -. "Sets policy for" .-> KC2
+%%  PC2 -. "depends on" .-> SC2
+  
+  %% External access
+  External -- "FHIR Requests" --> FG1
+  External -- "Admin/Token Requests" --> KC1
+  External -- "FHIR Requests" --> FG2
+  External -- "Admin/Token Requests" --> KC2
+
+

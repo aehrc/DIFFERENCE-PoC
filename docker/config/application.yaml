@@ -1,0 +1,8 @@
+server:
+  port: 8443
+  ssl:
+    enabled: true
+    key-store: /certs/keystore.jks
+    key-store-password: changeit
+    key-store-type: JKS
+    key-alias: mycert
