@@ -8,6 +8,8 @@ import PatientSummaryWithSelection from "./PatientSummaryWithSelection.tsx";
 import ConnectToSecondaryServerButton from "./ConnectToSecondaryServerButton.tsx";
 import { FhirServerContext } from "@/contexts/FhirServerContext.tsx";
 import { AUTH_REQUIRED_SECONDARY } from "@/globals.ts";
+import { Button } from "@/components/ui/button.tsx";
+import { MousePointerClick } from "lucide-react";
 
 function PatientSummary() {
   const { selectedPatient, setSelectedPatient } = useContext(PatientContext);
@@ -61,7 +63,18 @@ function PatientSummary() {
               <SourceFhirServerContextProvider fhirServerUrl={getSecondaryFhirServerBaseUrl()}>
                 <PatientContextProvider patientId={secondaryPatientId}>
                   {secondaryPatientId ? (
-                    <div style={{border: "solid 1px red"}}><PatientDetails /></div>
+                    <div style={{border: "solid 1px red"}}>
+                      <PatientDetails />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => linkPatient()}
+                        className="w-fit ml-auto"
+                      >
+                        Unlink Patient
+                        <MousePointerClick className="h-4 w-4 ml-2" />
+                      </Button>
+                    </div>
                   ) : (
                     <PatientSummaryWithSelection linkPatient={linkPatient} filter={nameFilter} />
                   )}

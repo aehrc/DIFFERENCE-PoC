@@ -35,7 +35,7 @@ function PatientSummaryWithSelection({ linkPatient, filter }: PatientSummaryWith
       <Button
         variant="outline"
         size="sm"
-        onClick={() => setSelectedPatient(null)}
+        onClick={() => selectOther()}
         className="w-fit ml-auto"
       >
         Select other Patient

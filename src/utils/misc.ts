@@ -24,7 +24,7 @@ const RE_MONTH_YEAR = /\d{4}-d{2}$/;
 
 export const QUERY_HEADERS = {
   "Content-Type": "application/fhir+json",
-  Accept: "application/fhir+json",
+  "Accept": "application/fhir+json",
   // "Cache-Control": "no-cache",
 };
 
