@@ -31,9 +31,10 @@ import { EncounterContext } from "@/contexts/EncounterContext.tsx";
 
 interface PatientTableProps {
   updateQueryOnSelection?: boolean;
+  filter?: string;
 }
 
-function PatientTable({updateQueryOnSelection = true}: PatientTableProps) {
+function PatientTable({updateQueryOnSelection = true, filter}: PatientTableProps) {
   const { selectedPatient, setSelectedPatient } = useContext(PatientContext);
   const { setSelectedEncounter } = useContext(EncounterContext);
   const { setQuery } = useLauncherQuery();
@@ -91,6 +92,7 @@ function PatientTable({updateQueryOnSelection = true}: PatientTableProps) {
       columns={columns}
       isLoading={isInitialLoading}
       selectedData={selectedPatient}
+      filter={filter}
     />
   );
 }

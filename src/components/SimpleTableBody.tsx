@@ -15,7 +15,7 @@ function SimpleTableBody(props: SimpleTableBodyProps<any, any>) {
   if (isLoading) {
     return (
       <TableRow>
-        <TableCell colSpan={columns.length} className="h-24 text-center">
+        <TableCell colSpan={columns.length} className="p-1 h-24 text-center">
           <DataTableLoading />
         </TableCell>
       </TableRow>
@@ -28,7 +28,7 @@ function SimpleTableBody(props: SimpleTableBodyProps<any, any>) {
         {table.getRowModel().rows.map((row) => (
           <TableRow key={row.id}>
             {row.getVisibleCells().map((cell) => (
-              <TableCell key={cell.id}>
+              <TableCell key={cell.id} className="p-1">
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </TableCell>
             ))}
@@ -40,7 +40,7 @@ function SimpleTableBody(props: SimpleTableBodyProps<any, any>) {
 
   return (
     <TableRow>
-      <TableCell colSpan={columns.length} className="h-24 text-center">
+      <TableCell colSpan={columns.length} className="p-1 h-24 text-center">
         <DataTableEmpty />
       </TableCell>
     </TableRow>

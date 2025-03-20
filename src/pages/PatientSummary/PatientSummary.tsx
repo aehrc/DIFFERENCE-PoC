@@ -3,16 +3,40 @@ import PatientContextProvider, { PatientContext } from "../../contexts/PatientCo
 import PatientCard from "@/pages/PatientSummary/PatientCard.tsx";
 import PatientDetails from "@/pages/PatientSummary/PatientDetails.tsx";
 import SourceFhirServerContextProvider from "@/contexts/SourceFhirServerContext.tsx";
-import { getSecondaryFhirServerBaseUrl } from "@/utils/misc.ts";
+import { humanName, getSecondaryFhirServerBaseUrl } from "@/utils/misc.ts";
 import PatientSummaryWithSelection from "./PatientSummaryWithSelection.tsx";
 import ConnectToSecondaryServerButton from "./ConnectToSecondaryServerButton.tsx";
 import { FhirServerContext } from "@/contexts/FhirServerContext.tsx";
 import { AUTH_REQUIRED_SECONDARY } from "@/globals.ts";
 
 function PatientSummary() {
-  const { selectedPatient } = useContext(PatientContext);
+  const { selectedPatient, setSelectedPatient } = useContext(PatientContext);
   const secondaryFhirServerContext = useContext(FhirServerContext)[getSecondaryFhirServerBaseUrl()];
   const secondaryAuthMissing = getSecondaryFhirServerBaseUrl() && AUTH_REQUIRED_SECONDARY && !secondaryFhirServerContext?.accessToken;
+  const nameFilter = selectedPatient ? humanName(selectedPatient) : undefined;
+
+  const linkPatient = (id?: string) => {
+    if (selectedPatient) {
+      if (id) {
+        if (!selectedPatient.link) {
+          selectedPatient.link = [];
+        }
+        selectedPatient.link.push({
+          type: "seealso",
+          other: {
+            type: "Patient",
+            reference: `${getSecondaryFhirServerBaseUrl()}/Patient/${id}`,
+          },
+        });
+        setSelectedPatient({...selectedPatient});
+      } else {
+        if (selectedPatient.link) {
+          selectedPatient.link = selectedPatient.link.filter(l => l.type !== "seealso" || l.other.type !== "Patient");
+          setSelectedPatient({...selectedPatient});
+        }
+      }
+    }
+  };
 
   let secondaryPatientId: string | undefined;
   if (selectedPatient && getSecondaryFhirServerBaseUrl()) {
@@ -37,9 +61,9 @@ function PatientSummary() {
               <SourceFhirServerContextProvider fhirServerUrl={getSecondaryFhirServerBaseUrl()}>
                 <PatientContextProvider patientId={secondaryPatientId}>
                   {secondaryPatientId ? (
-                    <PatientDetails />
+                    <div style={{border: "solid 1px red"}}><PatientDetails /></div>
                   ) : (
-                    <PatientSummaryWithSelection />
+                    <PatientSummaryWithSelection linkPatient={linkPatient} filter={nameFilter} />
                   )}
                 </PatientContextProvider>
               </SourceFhirServerContextProvider>

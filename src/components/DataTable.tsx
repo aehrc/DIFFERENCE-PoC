@@ -29,12 +29,13 @@ interface DataTableProps<TData, TValue> {
   isLoading: boolean;
   selectedData: FhirResource | null;
   onClearSelectedData?: () => void;
+  filter?: string;
 }
 
 function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
-  const { data, columns, isLoading, selectedData, onClearSelectedData } = props;
+  const { data, columns, isLoading, selectedData, onClearSelectedData, filter } = props;
 
-  const [globalFilter, setGlobalFilter] = useState("");
+  const [globalFilter, setGlobalFilter] = useState(filter ?? '');
 
   const table = useReactTable({
     data,
