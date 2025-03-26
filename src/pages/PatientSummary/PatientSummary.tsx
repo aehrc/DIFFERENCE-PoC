@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button.tsx";
 import { MousePointerClick } from "lucide-react";
 
 function PatientSummary() {
-  const { selectedPatient, setSelectedPatient } = useContext(PatientContext);
+  const { selectedPatient, setSelectedPatient, updatePatient } = useContext(PatientContext);
   const secondaryFhirServerContext = useContext(FhirServerContext)[getSecondaryFhirServerBaseUrl()];
   const secondaryAuthMissing = getSecondaryFhirServerBaseUrl() && AUTH_REQUIRED_SECONDARY && !secondaryFhirServerContext?.accessToken;
   const nameFilter = selectedPatient ? humanName(selectedPatient) : undefined;
@@ -30,11 +30,11 @@ function PatientSummary() {
             reference: `${getSecondaryFhirServerBaseUrl()}/Patient/${id}`,
           },
         });
-        setSelectedPatient({...selectedPatient});
+        updatePatient(selectedPatient);
       } else {
         if (selectedPatient.link) {
           selectedPatient.link = selectedPatient.link.filter(l => l.type !== "seealso" || l.other.type !== "Patient");
-          setSelectedPatient({...selectedPatient});
+          updatePatient(selectedPatient);
         }
       }
     }
