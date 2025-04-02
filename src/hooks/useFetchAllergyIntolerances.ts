@@ -25,16 +25,18 @@ import useFhirServerAxios from "@/hooks/useFhirServerAxios.ts";
 interface useFetchAllergyIntolerancesReturnParams {
   allergyIntolerances: AllergyIntolerance[];
   isInitialLoading: boolean;
+  serverUrl: string;
 }
 
 function useFetchAllergyIntolerances(
-  patientId: string
+  patientId: string,
+  serverUrl = "",
 ): useFetchAllergyIntolerancesReturnParams {
   const queryUrl = `/AllergyIntolerance?patient=${patientId}`;
 
-  const axiosInstance = useFhirServerAxios();
+  const axiosInstance = useFhirServerAxios(serverUrl);
   const { data: bundle, isInitialLoading } = useQuery<Bundle>(
-    ["allergyIntolerances" + patientId, queryUrl],
+    ["allergyIntolerances" + patientId, queryUrl, serverUrl],
     () => fetchResourceFromEHR(axiosInstance, queryUrl),
     { enabled: patientId !== "" }
   );
@@ -47,6 +49,7 @@ function useFetchAllergyIntolerances(
   return {
     allergyIntolerances,
     isInitialLoading,
+    serverUrl,
   };
 }
 

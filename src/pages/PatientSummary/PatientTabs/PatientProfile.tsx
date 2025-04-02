@@ -7,13 +7,23 @@ import {
   CardTitle,
 } from "@/components/ui/card.tsx";
 import usePatientDetails from "@/hooks/usePatientDetails.ts";
+import useSourceFhirServer from "@/hooks/useSourceFhirServer";
+import { useContext } from "react";
+import { PatientContext } from "@/contexts/PatientContext";
+import PatientProfileLoading from "./PatientProfileLoading";
 
-interface PatientProfileProps {
+function PatientProfile() {
+  const { selectedPatient } = useContext(PatientContext);
+
+  return selectedPatient ? <PatientProfileCard patient={selectedPatient} /> : <PatientProfileLoading />
+}
+interface PatientProfileCardProps {
   patient: Patient;
 }
 
-function PatientProfile(props: PatientProfileProps) {
+function PatientProfileCard(props: PatientProfileCardProps) {
   const { patient } = props;
+  const { serverUrl } = useSourceFhirServer();
 
   const {
     patientName,
@@ -24,11 +34,13 @@ function PatientProfile(props: PatientProfileProps) {
   } = usePatientDetails(patient);
 
   return (
-    <Card>
+    <Card className="h-fit">
       <CardHeader>
         <CardTitle>Profile</CardTitle>
         <CardDescription>
           Patient demographic information and other details
+          <br />
+          <b>Source:</b> {serverUrl}
         </CardDescription>
       </CardHeader>
       <CardContent>

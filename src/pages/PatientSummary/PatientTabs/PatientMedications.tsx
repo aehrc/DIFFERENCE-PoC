@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import useFetchMedicationRequests from "@/hooks/useFetchMedicationRequests.ts";
 import { nanoid } from "nanoid";
 import dayjs from "dayjs";
@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card.tsx";
 import SimpleTable from "@/components/SimpleTable.tsx";
+import { PatientContext } from "@/contexts/PatientContext";
 
 interface PatientMedicationsProps {
   patientId: string;
@@ -21,12 +22,16 @@ interface PatientMedicationsProps {
 
 function PatientMedications(props: PatientMedicationsProps) {
   const { patientId } = props;
+  const { linkedPatientIds } = useContext(PatientContext);
 
-  const { medicationRequests, isInitialLoading } =
-    useFetchMedicationRequests(patientId);
+  const primaryData = useFetchMedicationRequests(patientId);
+  const linkedData = Object.entries(linkedPatientIds).map(([serverUrl, patientId]) => useFetchMedicationRequests(patientId, serverUrl));
+
+  const allData = [primaryData, ...linkedData];
+  const allMedicationRequests = allData.map(data => data.medicationRequests.map(entry => ({...entry, source: data.serverUrl}))).flat()
 
   const medicationTableData: MedicationTableData[] = useMemo(() => {
-    return medicationRequests.map((entry) => {
+    return allMedicationRequests.map((entry) => {
       let medicationText =
         entry.medicationCodeableConcept?.coding?.[0].display ??
         entry.medicationCodeableConcept?.text ??
@@ -53,9 +58,10 @@ function PatientMedications(props: PatientMedicationsProps) {
                   "http://hl7.org/fhir/StructureDefinition/data-absent-reason" &&
                 !!ext.valueCode
             )?.valueCode ?? null,
+        source: entry.source
       };
     });
-  }, [medicationRequests]);
+  }, [allMedicationRequests]);
 
   const columns = createMedicationTableColumns();
 
@@ -71,7 +77,7 @@ function PatientMedications(props: PatientMedicationsProps) {
         <SimpleTable
           data={medicationTableData}
           columns={columns}
-          isLoading={isInitialLoading}
+          isLoading={allData.some(data => data.isInitialLoading)}
         />
       </CardContent>
     </Card>

@@ -11,12 +11,14 @@ export interface PatientContextType {
   selectedPatient: Patient | null;
   setSelectedPatient: (patient: Patient | null) => unknown;
   updatePatient: (patient: Patient) => void | null;
+  linkedPatientIds: Record<string, string>;
 }
 
 export const PatientContext = createContext<PatientContextType>({
   selectedPatient: null,
   setSelectedPatient: () => void 0,
   updatePatient: () => null,
+  linkedPatientIds: {},
 });
 
 type PatientContextProviderProps = {
@@ -42,7 +44,7 @@ const PatientContextProvider = ({ patientId, children }: PatientContextProviderP
 
   const updatePatientMutation = useMutation(
     (updatedPatient: Patient) =>
-      axiosInstance.put(`/Patient/${updatedPatient.id}`, updatedPatient),
+      axiosInstance ? axiosInstance.put(`/Patient/${updatedPatient.id}`, updatedPatient) : Promise.reject("No axios instance"),
     {
       onSuccess: (response) => {
         // Option 1: Invalidate to refetch the updated data:
@@ -68,8 +70,23 @@ const PatientContextProvider = ({ patientId, children }: PatientContextProviderP
     updatePatientMutation.mutate(patient);
   };
 
+  const getLinkedPatientIds = () => {
+    const linkedPatientIds: Record<string, string> = {};
+    if (selectedPatient?.link) {
+      const links = selectedPatient.link?.filter(l => l.type === "seealso" && l.other.type === "Patient");
+      links?.forEach(link => {
+        const separator = "/Patient/";
+        const substrings = link.other.reference?.split(separator);
+        const patientId = substrings?.pop(), serverUrl = substrings?.join(separator);
+        if (serverUrl && patientId) linkedPatientIds[serverUrl] = patientId;
+      })
+    }
+
+    return linkedPatientIds;
+  }
+
   return (
-    <PatientContext.Provider value={{ selectedPatient, setSelectedPatient, updatePatient }}>
+    <PatientContext.Provider value={{ selectedPatient, setSelectedPatient, updatePatient, linkedPatientIds: getLinkedPatientIds() }}>
       {children}
     </PatientContext.Provider>
   );

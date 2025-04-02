@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import useFetchProcedures from "@/hooks/useFetchProcedures.ts";
 import {
   createProcedureTableColumns,
@@ -14,18 +14,24 @@ import {
   CardTitle,
 } from "@/components/ui/card.tsx";
 import SimpleTable from "@/components/SimpleTable.tsx";
+import { PatientContext } from "@/contexts/PatientContext";
 
 interface PatientProceduresProps {
   patientId: string;
 }
 
 function PatientProcedures(props: PatientProceduresProps) {
-  const { patientId } = props;
+  const { patientId } = props;  
+  const { linkedPatientIds } = useContext(PatientContext);
 
-  const { procedures, isInitialLoading } = useFetchProcedures(patientId);
+  const primaryData = useFetchProcedures(patientId);
+  const linkedData = Object.entries(linkedPatientIds).map(([serverUrl, patientId]) => useFetchProcedures(patientId, serverUrl));
+
+  const allData = [primaryData, ...linkedData];
+  const allProcedures = allData.map(data => data.procedures.map(entry => ({...entry, source: data.serverUrl}))).flat()
 
   const procedureTableData: ProcedureTableData[] = useMemo(() => {
-    return procedures.map((entry) => {
+    return allProcedures.map((entry) => {
       let procedureText =
         entry.code?.coding?.[0].display ??
         entry.code?.text ??
@@ -56,9 +62,10 @@ function PatientProcedures(props: PatientProceduresProps) {
           entry.reasonCode?.[0].text ??
           "",
         performedOn: performedOn,
+        source: entry.source
       };
     });
-  }, [procedures]);
+  }, [allProcedures]);
 
   const columns = createProcedureTableColumns();
 
@@ -74,7 +81,7 @@ function PatientProcedures(props: PatientProceduresProps) {
         <SimpleTable
           data={procedureTableData}
           columns={columns}
-          isLoading={isInitialLoading}
+          isLoading={allData.some(data => data.isInitialLoading)}
           initialSorting={[{ id: "performedOn", desc: true }]}
         />
       </CardContent>

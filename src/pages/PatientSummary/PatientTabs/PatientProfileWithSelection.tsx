@@ -1,9 +1,9 @@
 import { useContext } from "react";
-import { PatientContext } from "../../contexts/PatientContext.tsx";
-import PatientDetails from "@/pages/PatientSummary/PatientDetails.tsx";
-import PatientTable from "../Settings/PatientSettings/PatientTable.tsx";
+import { PatientContext } from "../../../contexts/PatientContext.tsx";
+import PatientTable from "../../Settings/PatientSettings/PatientTable.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { MousePointerClick } from "lucide-react";
+import PatientProfile from "./PatientProfile.tsx";
 
 interface PatientSummaryWithSelectionProps {
   linkPatient: (id?:string) => void;
@@ -20,7 +20,7 @@ function PatientSummaryWithSelection({ linkPatient, filter }: PatientSummaryWith
   return (
     selectedPatient ? (
       <div className="grid gap-6">
-      <PatientDetails />
+      <PatientProfile />
       <div className="grid grid-flow-col gap-1">
       <Button
         hidden={!selectedPatient}

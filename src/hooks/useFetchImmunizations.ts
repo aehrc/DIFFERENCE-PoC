@@ -25,16 +25,18 @@ import useFhirServerAxios from "@/hooks/useFhirServerAxios.ts";
 interface useFetchImmunizationsReturnParams {
   immunizations: Immunization[];
   isInitialLoading: boolean;
+  serverUrl: string;
 }
 
 function useFetchImmunizations(
-  patientId: string
+  patientId: string,
+  serverUrl = "",
 ): useFetchImmunizationsReturnParams {
   const queryUrl = `/Immunization?patient=${patientId}`;
 
-  const axiosInstance = useFhirServerAxios();
+  const axiosInstance = useFhirServerAxios(serverUrl);
   const { data: bundle, isInitialLoading } = useQuery<Bundle>(
-    ["immunizations" + patientId, queryUrl],
+    ["immunizations" + patientId, queryUrl, serverUrl],
     () => fetchResourceFromEHR(axiosInstance, queryUrl),
     { enabled: patientId !== "" }
   );
@@ -47,6 +49,7 @@ function useFetchImmunizations(
   return {
     immunizations,
     isInitialLoading,
+    serverUrl,
   };
 }
 

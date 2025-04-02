@@ -25,17 +25,21 @@ import useFhirServerAxios from "@/hooks/useFhirServerAxios.ts";
 interface useFetchEncountersReturnParams {
   encounters: Encounter[];
   isInitialLoading: boolean;
+  serverUrl: string;
 }
 
-function useFetchEncounters(patientId: string): useFetchEncountersReturnParams {
+function useFetchEncounters(
+  patientId: string,
+  serverUrl = "",
+): useFetchEncountersReturnParams {
   const numOfSearchEntries = 500;
 
   // Note: numOfSearchEntries not used in Sparked reference server due to lack of support for _count
   const queryUrl = `/Encounter?patient=${patientId}`;
 
-  const axiosInstance = useFhirServerAxios();
+  const axiosInstance = useFhirServerAxios(serverUrl);
   const { data: bundle, isInitialLoading } = useQuery<Bundle>(
-    ["encounters" + patientId + numOfSearchEntries.toString(), queryUrl],
+    ["encounters" + patientId + numOfSearchEntries.toString(), queryUrl, serverUrl],
     () => fetchResourceFromEHR(axiosInstance, queryUrl),
     { enabled: patientId !== "" }
   );
@@ -48,6 +52,7 @@ function useFetchEncounters(patientId: string): useFetchEncountersReturnParams {
   return {
     encounters,
     isInitialLoading,
+    serverUrl,
   };
 }
 

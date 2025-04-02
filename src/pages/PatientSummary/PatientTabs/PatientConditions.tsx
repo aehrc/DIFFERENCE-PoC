@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { ConditionTableData } from "@/utils/patientDetails.ts";
 import useFetchConditions from "@/hooks/useFetchConditions.ts";
 import { nanoid } from "nanoid";
@@ -12,18 +12,24 @@ import {
   CardTitle,
 } from "@/components/ui/card.tsx";
 import SimpleTable from "@/components/SimpleTable.tsx";
+import { PatientContext } from "@/contexts/PatientContext";
 
 interface PatientConditionsProps {
   patientId: string;
 }
 
 function PatientConditions(props: PatientConditionsProps) {
-  const { patientId } = props;
+  const { patientId } = props;  
+  const { linkedPatientIds } = useContext(PatientContext);
 
-  const { conditions, isInitialLoading } = useFetchConditions(patientId);
+  const primaryData = useFetchConditions(patientId);
+  const linkedData = Object.entries(linkedPatientIds).map(([serverUrl, patientId]) => useFetchConditions(patientId, serverUrl));
+
+  const allData = [primaryData, ...linkedData];
+  const allConditions = allData.map(data => data.conditions.map(entry => ({...entry, source: data.serverUrl}))).flat()
 
   const conditionTableData: ConditionTableData[] = useMemo(() => {
-    return conditions.map((entry) => {
+    return allConditions.map((entry) => {
       let conditionText =
         entry.code?.coding?.[0].display ??
         entry.code?.text ??
@@ -46,9 +52,10 @@ function PatientConditions(props: PatientConditionsProps) {
           "",
         onsetDate: entry.onsetDateTime ? dayjs(entry.onsetDateTime) : null,
         recordedDate: entry.recordedDate ? dayjs(entry.recordedDate) : null,
+        source: entry.source
       };
     });
-  }, [conditions]);
+  }, [allConditions]);
 
   const columns = createConditionTableColumns();
 
@@ -64,7 +71,7 @@ function PatientConditions(props: PatientConditionsProps) {
         <SimpleTable
           data={conditionTableData}
           columns={columns}
-          isLoading={isInitialLoading}
+          isLoading={allData.some(data => data.isInitialLoading)}
           initialSorting={[{ id: "recordedDate", desc: true }]}
         />
       </CardContent>

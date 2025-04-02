@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { nanoid } from "nanoid";
 import {
   createEncounterTableColumns,
@@ -13,25 +13,32 @@ import {
 } from "@/components/ui/card.tsx";
 import SimpleTable from "@/components/SimpleTable.tsx";
 import useFetchEncounters from "@/hooks/useFetchEncounters.ts";
+import { PatientContext } from "@/contexts/PatientContext";
 
 interface PatientEncountersProps {
   patientId: string;
 }
 
 function PatientEncounters(props: PatientEncountersProps) {
-  const { patientId } = props;
+  const { patientId } = props;  
+  const { linkedPatientIds } = useContext(PatientContext);
 
-  const { encounters, isInitialLoading } = useFetchEncounters(patientId);
+  const primaryData = useFetchEncounters(patientId);
+  const linkedData = Object.entries(linkedPatientIds).map(([serverUrl, patientId]) => useFetchEncounters(patientId, serverUrl));
+
+  const allData = [primaryData, ...linkedData];
+  const allEncounters = allData.map(data => data.encounters.map(entry => ({...entry, source: data.serverUrl}))).flat()
 
   const encounterTableData: EncounterTableData[] = useMemo(() => {
-    return encounters.map((entry) => ({
+    return allEncounters.map((entry) => ({
       id: entry.id ?? nanoid(),
       type: entry.type?.[0].coding?.[0].display ?? entry.type?.[0].text ?? "",
       class: entry.class?.display ?? entry.class.code ?? "",
       status: entry.status ?? "",
       period: entry.period ?? null,
+      source: entry.source
     }));
-  }, [encounters]);
+  }, [allEncounters]);
 
   const columns = createEncounterTableColumns();
 
@@ -47,7 +54,7 @@ function PatientEncounters(props: PatientEncountersProps) {
         <SimpleTable
           data={encounterTableData}
           columns={columns}
-          isLoading={isInitialLoading}
+          isLoading={allData.some(data => data.isInitialLoading)}
           initialSorting={[{ id: "period", desc: true }]}
         />
       </CardContent>

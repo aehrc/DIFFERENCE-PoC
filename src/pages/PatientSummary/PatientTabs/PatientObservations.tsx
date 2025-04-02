@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { nanoid } from "nanoid";
 import {
   createObservationTableColumns,
@@ -15,6 +15,7 @@ import {
 import SimpleTable from "@/components/SimpleTable.tsx";
 import useFetchObservations from "@/hooks/useFetchObservations.ts";
 import dayjs from "dayjs";
+import { PatientContext } from "@/contexts/PatientContext";
 
 interface PatientObservationsProps {
   patientId: string;
@@ -22,11 +23,16 @@ interface PatientObservationsProps {
 
 function PatientObservations(props: PatientObservationsProps) {
   const { patientId } = props;
+  const { linkedPatientIds } = useContext(PatientContext);
 
-  const { observations, isInitialLoading } = useFetchObservations(patientId);
+  const primaryData = useFetchObservations(patientId);
+  const linkedData = Object.entries(linkedPatientIds).map(([serverUrl, patientId]) => useFetchObservations(patientId, serverUrl));
+
+  const allData = [primaryData, ...linkedData];
+  const allObservations = allData.map(data => data.observations.map(entry => ({...entry, source: data.serverUrl}))).flat()
 
   const observationTableData: ObservationTableData[] = useMemo(() => {
-    return observations.map((entry) => {
+    return allObservations.map((entry) => {
       let observationText =
         entry.code.coding?.[0].display ??
         entry.code.text ??
@@ -67,9 +73,10 @@ function PatientObservations(props: PatientObservationsProps) {
                   "http://hl7.org/fhir/StructureDefinition/data-absent-reason" &&
                 !!ext.valueCode
             )?.valueCode ?? null,
+        source: entry.source
       };
     });
-  }, [observations]);
+  }, [allObservations]);
 
   const columns = createObservationTableColumns();
 
@@ -85,7 +92,7 @@ function PatientObservations(props: PatientObservationsProps) {
         <SimpleTable
           data={observationTableData}
           columns={columns}
-          isLoading={isInitialLoading}
+          isLoading={allData.some(data => data.isInitialLoading)}
           initialSorting={[{ id: "effectiveDateTime", desc: true }]}
         />
       </CardContent>

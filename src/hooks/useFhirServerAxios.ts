@@ -35,15 +35,19 @@ async function refreshAccessToken(
   return null;
 }
 
-function useAxios() {
-  const { serverUrl } = useSourceFhirServer();
+function useAxios(serverUrl = "") {
+  const { serverUrl: sourceServerUrl } = useSourceFhirServer();
+  serverUrl = serverUrl || sourceServerUrl;
+
   const { clientId } = serverUrl === getSecondaryFhirServerBaseUrl() ? OAUTH_SECONDARY : OAUTH;
+  const fhirServerContext = useContext(FhirServerContext)[serverUrl];
+  if (!fhirServerContext) return null;
   const {
     tokenEndpoint,
     accessToken,
     refreshToken,
     setTokenResponse,
-  } = useContext(FhirServerContext)[serverUrl];
+  } = fhirServerContext;
 
   const axiosInstance = axios.create({
     baseURL: serverUrl,

@@ -16,9 +16,10 @@ export interface SmartConfiguration {
 }
 
 export async function fetchResourceFromEHR(
-  axiosInstance: AxiosInstance,
+  axiosInstance: AxiosInstance | null,
   requestUrl: string
 ) {
+  if (!axiosInstance) return null;
   const baseUrl = axiosInstance.defaults.baseURL || "";
 
   const transformedUrl = transformUrlWithVersion(baseUrl, requestUrl);

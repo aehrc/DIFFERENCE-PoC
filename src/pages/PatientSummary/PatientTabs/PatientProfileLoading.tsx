@@ -6,14 +6,18 @@ import {
   CardTitle,
 } from "@/components/ui/card.tsx";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
+import useSourceFhirServer from "@/hooks/useSourceFhirServer";
 
 function PatientProfileLoading() {
+  const { serverUrl } = useSourceFhirServer();
   return (
-    <Card className="mt-2 ring-offset-background">
+    <Card>
       <CardHeader>
         <CardTitle>Profile</CardTitle>
         <CardDescription>
           Patient demographic information and other details
+          <br />
+          <b>Source:</b> {serverUrl}
         </CardDescription>
       </CardHeader>
       <CardContent>

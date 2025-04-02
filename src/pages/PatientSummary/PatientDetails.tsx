@@ -4,7 +4,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs.tsx";
-import PatientProfile from "@/pages/PatientSummary/PatientTabs/PatientProfile.tsx";
+import DualPatientProfile from "@/pages/PatientSummary/PatientTabs/DualPatientProfile";
 import PatientProfileLoading from "@/pages/PatientSummary/PatientTabs/PatientProfileLoading.tsx";
 import PatientConditions from "@/pages/PatientSummary/PatientTabs/PatientConditions.tsx";
 import PatientMedications from "@/pages/PatientSummary/PatientTabs/PatientMedications.tsx";
@@ -54,7 +54,7 @@ function PatientDetails() {
         {patient && patient.id ? (
           <>
             <TabsContent value="profile">
-              <PatientProfile patient={patient} />
+              <DualPatientProfile />
             </TabsContent>
             <TabsContent value="encounters">
               <PatientEncounters patientId={patient.id} />
@@ -79,7 +79,9 @@ function PatientDetails() {
             </TabsContent>
           </>
         ) : (
-          <PatientProfileLoading />
+          <TabsContent value="profile">
+            <PatientProfileLoading />
+          </TabsContent>
         )}
       </Tabs>
     </main>

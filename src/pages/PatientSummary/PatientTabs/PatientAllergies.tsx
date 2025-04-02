@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import useFetchAllergyIntolerances from "@/hooks/useFetchAllergyIntolerances.ts";
 import {
   AllergyTableData,
@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card.tsx";
 import SimpleTable from "@/components/SimpleTable.tsx";
+import { PatientContext } from "@/contexts/PatientContext";
 
 interface PatientAllergiesProps {
   patientId: string;
@@ -21,12 +22,17 @@ interface PatientAllergiesProps {
 
 function PatientAllergies(props: PatientAllergiesProps) {
   const { patientId } = props;
+  const { linkedPatientIds } = useContext(PatientContext);
 
-  const { allergyIntolerances, isInitialLoading } =
-    useFetchAllergyIntolerances(patientId);
+  const primaryData = useFetchAllergyIntolerances(patientId);
+  const linkedData = Object.entries(linkedPatientIds).map(([serverUrl, patientId]) => useFetchAllergyIntolerances(patientId, serverUrl));
+
+  const allData = [primaryData, ...linkedData];
+  const allAllergyIntolerances = allData.map(data => data.allergyIntolerances.map(entry => ({...entry, source: data.serverUrl}))).flat()
+
 
   const allergyTableData: AllergyTableData[] = useMemo(() => {
-    return allergyIntolerances.map((entry) => {
+    return allAllergyIntolerances.map((entry) => {
       let allergyText =
         entry.code?.coding?.[0].display ??
         entry.code?.text ??
@@ -53,9 +59,10 @@ function PatientAllergies(props: PatientAllergiesProps) {
         category: entry.category?.[0] ?? "",
         criticality: entry.criticality ?? "",
         recordedDate: entry.recordedDate ? dayjs(entry.recordedDate) : null,
+        source: entry.source
       };
     });
-  }, [allergyIntolerances]);
+  }, [allAllergyIntolerances]);
 
   const columns = createAllergyTableColumns();
 
@@ -71,7 +78,7 @@ function PatientAllergies(props: PatientAllergiesProps) {
         <SimpleTable
           data={allergyTableData}
           columns={columns}
-          isLoading={isInitialLoading}
+          isLoading={allData.some(data => data.isInitialLoading)}
           initialSorting={[{ id: "recordedDate", desc: true }]}
         />
       </CardContent>

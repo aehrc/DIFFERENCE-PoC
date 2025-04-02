@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import useFetchImmunizations from "@/hooks/useFetchImmunizations.ts";
 import { nanoid } from "nanoid";
 import dayjs from "dayjs";
@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card.tsx";
 import SimpleTable from "@/components/SimpleTable.tsx";
+import { PatientContext } from "@/contexts/PatientContext";
 
 interface Props {
   patientId: string;
@@ -21,11 +22,16 @@ interface Props {
 
 function PatientImmunizations(props: Props) {
   const { patientId } = props;
+  const { linkedPatientIds } = useContext(PatientContext);
 
-  const { immunizations, isInitialLoading } = useFetchImmunizations(patientId);
+  const primaryData = useFetchImmunizations(patientId);
+  const linkedData = Object.entries(linkedPatientIds).map(([serverUrl, patientId]) => useFetchImmunizations(patientId, serverUrl));
+
+  const allData = [primaryData, ...linkedData];
+  const allImmunizations = allData.map(data => data.immunizations.map(entry => ({...entry, source: data.serverUrl}))).flat()
 
   const immunizationTableData: ImmunizationTableData[] = useMemo(() => {
-    return immunizations.map((entry) => {
+    return allImmunizations.map((entry) => {
       let immunizationText =
         entry.vaccineCode?.coding?.[0].display ??
         entry.vaccineCode?.text ??
@@ -48,7 +54,7 @@ function PatientImmunizations(props: Props) {
           : null,
       };
     });
-  }, [immunizations]);
+  }, [allImmunizations]);
 
   const columns = createImmunizationTableColumns();
 
@@ -64,7 +70,7 @@ function PatientImmunizations(props: Props) {
         <SimpleTable
           data={immunizationTableData}
           columns={columns}
-          isLoading={isInitialLoading}
+          isLoading={allData.some(data => data.isInitialLoading)}
           initialSorting={[{ id: "occurrenceDate", desc: true }]}
         />
       </CardContent>

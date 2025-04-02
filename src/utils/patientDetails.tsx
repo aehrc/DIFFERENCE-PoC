@@ -2,9 +2,15 @@ import dayjs, { Dayjs } from "dayjs";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge.tsx";
 import { Observation, ObservationComponent, Period } from "fhir/r4";
+import { Workflow } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
+interface TableData {
+  source?: string
+}
 
 // Encounter functions and types
-export interface EncounterTableData {
+export interface EncounterTableData extends TableData {
   id: string;
   type: string;
   class: string;
@@ -14,6 +20,7 @@ export interface EncounterTableData {
 
 export function createEncounterTableColumns(): ColumnDef<EncounterTableData>[] {
   return [
+    createSourceServerColumn(),
     {
       accessorKey: "type",
       header: "Type",
@@ -96,7 +103,7 @@ export function createEncounterTableColumns(): ColumnDef<EncounterTableData>[] {
 }
 
 // Condition functions and types
-export interface ConditionTableData {
+export interface ConditionTableData extends TableData {
   id: string;
   condition: string;
   clinicalStatus: string;
@@ -106,6 +113,7 @@ export interface ConditionTableData {
 
 export function createConditionTableColumns(): ColumnDef<ConditionTableData>[] {
   return [
+    createSourceServerColumn(),
     {
       accessorKey: "condition",
       header: "Condition",
@@ -168,7 +176,7 @@ export function createConditionTableColumns(): ColumnDef<ConditionTableData>[] {
 }
 
 // MedicationRequest functions and types
-export interface MedicationTableData {
+export interface MedicationTableData extends TableData {
   id: string;
   medication: string;
   status: string;
@@ -177,6 +185,7 @@ export interface MedicationTableData {
 
 export function createMedicationTableColumns(): ColumnDef<MedicationTableData>[] {
   return [
+    createSourceServerColumn(),
     {
       accessorKey: "medication",
       header: "Medication",
@@ -236,7 +245,7 @@ export function createMedicationTableColumns(): ColumnDef<MedicationTableData>[]
 }
 
 // AllergyIntolerances functions and types
-export interface AllergyTableData {
+export interface AllergyTableData extends TableData {
   id: string;
   allergy: string;
   verificationStatus: string;
@@ -247,6 +256,7 @@ export interface AllergyTableData {
 
 export function createAllergyTableColumns(): ColumnDef<AllergyTableData>[] {
   return [
+    createSourceServerColumn(),
     {
       accessorKey: "allergy",
       header: "Allergy",
@@ -316,7 +326,7 @@ export function createAllergyTableColumns(): ColumnDef<AllergyTableData>[] {
 }
 
 // Procedures functions and types
-export interface ProcedureTableData {
+export interface ProcedureTableData extends TableData {
   id: string;
   procedure: string;
   status: string;
@@ -326,6 +336,7 @@ export interface ProcedureTableData {
 
 export function createProcedureTableColumns(): ColumnDef<ProcedureTableData>[] {
   return [
+    createSourceServerColumn(),
     {
       accessorKey: "procedure",
       header: "Procedure",
@@ -385,7 +396,7 @@ export function createProcedureTableColumns(): ColumnDef<ProcedureTableData>[] {
 }
 
 // Immunizations functions and types
-export interface ImmunizationTableData {
+export interface ImmunizationTableData extends TableData {
   id: string;
   immunization: string;
   status: string;
@@ -394,6 +405,7 @@ export interface ImmunizationTableData {
 
 export function createImmunizationTableColumns(): ColumnDef<ImmunizationTableData>[] {
   return [
+    createSourceServerColumn(),
     {
       accessorKey: "immunization",
       header: "Immunization",
@@ -455,7 +467,7 @@ export function createImmunizationTableColumns(): ColumnDef<ImmunizationTableDat
 }
 
 // Observations functions and types
-export interface ObservationTableData {
+export interface ObservationTableData extends TableData {
   id: string;
   observation: string;
   status: string;
@@ -466,6 +478,7 @@ export interface ObservationTableData {
 
 export function createObservationTableColumns(): ColumnDef<ObservationTableData>[] {
   return [
+    createSourceServerColumn(),
     {
       accessorKey: "observation",
       header: "Observation",
@@ -667,4 +680,21 @@ export function getObservationOrComponentValue(
   }
 
   return null;
+}
+
+function createSourceServerColumn<T extends TableData>() : ColumnDef<T> {
+  return ({
+    accessorKey: "source",
+    header: "",
+    cell: ({ row }) => (
+      row.getValue("source") ?
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Workflow className="w-5 h-5" />
+        </TooltipTrigger>
+        <TooltipContent side="right"><b>Source: </b>{row.getValue("source")}</TooltipContent>
+      </Tooltip>
+      : null
+    ),
+  })
 }
