@@ -43,11 +43,14 @@ function useAxios(serverUrl = "") {
   const fhirServerContext = useContext(FhirServerContext)[serverUrl];
   if (!fhirServerContext) return null;
   const {
+    authRequired,
     tokenEndpoint,
     accessToken,
     refreshToken,
     setTokenResponse,
   } = fhirServerContext;
+
+  if (authRequired && !accessToken) return null;
 
   const axiosInstance = axios.create({
     baseURL: serverUrl,

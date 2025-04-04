@@ -2,9 +2,11 @@ import { createContext, ReactNode, useState } from "react";
 import { IsValidIdToken, TokenResponse } from "@/utils/oauth.ts";
 import { getFhirServerBaseUrl, getSecondaryFhirServerBaseUrl } from "@/utils/misc.ts";
 import { jwtDecode } from "jwt-decode";
+import { AUTH_REQUIRED, AUTH_REQUIRED_SECONDARY } from "@/globals";
 
 interface FhirServerContextType {
   baseUrl: string;
+  authRequired: boolean;
   tokenEndpoint: string;
   tokenResponse: TokenResponse | null;
   accessToken: string;
@@ -26,8 +28,9 @@ const FhirServerContextProvider = (props: { children: ReactNode }) => {
   const [fhirUsers, setFhirUsers] = useState<Record<string, string | null>>({});
 
   const contextValue: Record<string, FhirServerContextType> = {}
-  const createContextValue = (baseUrl: string): FhirServerContextType => ({
+  const createContextValue = (baseUrl: string, authRequired: boolean): FhirServerContextType => ({
     baseUrl,
+    authRequired,
     tokenEndpoint: tokenEndpoints[baseUrl] ?? "",
     tokenResponse: tokenResponses[baseUrl],
     accessToken: tokenResponses[baseUrl]?.access_token ?? "",
@@ -70,9 +73,9 @@ const FhirServerContextProvider = (props: { children: ReactNode }) => {
     },
   })
 
-  contextValue[getFhirServerBaseUrl()] = createContextValue(getFhirServerBaseUrl());
+  contextValue[getFhirServerBaseUrl()] = createContextValue(getFhirServerBaseUrl(), AUTH_REQUIRED);
   if (getSecondaryFhirServerBaseUrl()) {
-    contextValue[getSecondaryFhirServerBaseUrl()] = createContextValue(getSecondaryFhirServerBaseUrl());
+    contextValue[getSecondaryFhirServerBaseUrl()] = createContextValue(getSecondaryFhirServerBaseUrl(), AUTH_REQUIRED_SECONDARY);
   }
 
   return (

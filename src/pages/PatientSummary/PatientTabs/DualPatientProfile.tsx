@@ -1,6 +1,5 @@
 import { FhirServerContext } from "@/contexts/FhirServerContext";
 import PatientContextProvider, { PatientContext } from "@/contexts/PatientContext";
-import { AUTH_REQUIRED_SECONDARY } from "@/globals";
 import { getSecondaryFhirServerBaseUrl, humanName } from "@/utils/misc";
 import { useContext } from "react";
 import ConnectToSecondaryServerButton from "../ConnectToSecondaryServerButton";
@@ -13,7 +12,7 @@ import PatientProfile from "./PatientProfile";
 function DualPatientProfile() {
   const { selectedPatient, updatePatient } = useContext(PatientContext);
   const secondaryFhirServerContext = useContext(FhirServerContext)[getSecondaryFhirServerBaseUrl()];
-  const secondaryAuthMissing = getSecondaryFhirServerBaseUrl() && AUTH_REQUIRED_SECONDARY && !secondaryFhirServerContext?.accessToken;
+  const secondaryAuthMissing = getSecondaryFhirServerBaseUrl() && secondaryFhirServerContext?.authRequired && !secondaryFhirServerContext?.accessToken;
   const nameFilter = selectedPatient ? humanName(selectedPatient) : undefined;
 
   const linkPatient = (id?: string) => {

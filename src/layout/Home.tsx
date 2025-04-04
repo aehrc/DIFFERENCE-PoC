@@ -6,12 +6,12 @@ import InitialPatientSelection from "@/pages/InitialPatientSelection.tsx";
 import InitialUserSelection from "@/pages/InitialUserSelection.tsx";
 import useLauncherQuery from "@/hooks/useLauncherQuery.ts";
 import useLoadResources from "@/hooks/useLoadResources.ts";
-import { AUTH_REQUIRED, OAUTH } from "@/globals.ts";
+import { OAUTH } from "@/globals.ts";
 import { getFhirServerBaseUrl } from "@/utils/misc";
 
 function Home() {
   const fhirServerContext = useContext(FhirServerContext);
-  const { accessToken, fhirUser } = fhirServerContext[getFhirServerBaseUrl()];
+  const { authRequired, accessToken, fhirUser } = fhirServerContext[getFhirServerBaseUrl()];
 
   useLoadResources();
 
@@ -21,7 +21,7 @@ function Home() {
 
   // Use AUTH_REQUIRED to determine if authorisation is required. If not authenticated, redirect to AuthCallback
   // If no grant type is set, app assumes no auth is needed and proceeds to user/patient selection
-  if (AUTH_REQUIRED === true && accessToken === "") {
+  if (authRequired === true && accessToken === "") {
     if (OAUTH.grantType === "authorization_code") {
       return <RedirectToAuthCallback baseUrl={getFhirServerBaseUrl()} />;
     }
