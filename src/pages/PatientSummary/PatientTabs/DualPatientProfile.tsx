@@ -5,7 +5,7 @@ import { useContext } from "react";
 import ConnectToSecondaryServerButton from "../ConnectToSecondaryServerButton";
 import { Button } from "@/components/ui/button";
 import SourceFhirServerContextProvider from "@/contexts/SourceFhirServerContext";
-import { MousePointerClick } from "lucide-react";
+import { Unlink } from "lucide-react";
 import PatientSummaryWithSelection from "./PatientProfileWithSelection";
 import PatientProfile from "./PatientProfile";
 
@@ -57,17 +57,19 @@ function DualPatientProfile() {
         <SourceFhirServerContextProvider fhirServerUrl={getSecondaryFhirServerBaseUrl()}>
           <PatientContextProvider patientId={secondaryPatientId}>
             {secondaryPatientId ? (
-              <div style={{border: "solid 1px red"}}>
+              <div className="grid gap-6">
                 <PatientProfile />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => linkPatient()}
-                  className="w-fit ml-auto"
-                >
-                  Unlink Patient
-                  <MousePointerClick className="h-4 w-4 ml-2" />
-                </Button>
+                <div className="grid grid-flow-col gap-3 ml-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => linkPatient()}
+                    className="w-fit ml-auto"
+                  >
+                    <Unlink className="h-4 w-4 mr-2" />
+                    Unlink Patient
+                  </Button>
+                </div>
               </div>
             ) : (
               <PatientSummaryWithSelection linkPatient={linkPatient} filter={nameFilter} />
