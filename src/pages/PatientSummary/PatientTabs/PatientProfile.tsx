@@ -31,6 +31,7 @@ function PatientProfileCard(props: PatientProfileCardProps) {
     patientAge,
     patientDob,
     patientSexAtBirth,
+    patientMedicareNumber,
   } = usePatientDetails(patient);
 
   return (
@@ -80,6 +81,11 @@ function PatientProfileCard(props: PatientProfileCardProps) {
           <div className="flex  gap-2">
             <div className="font-medium w-1/5">Date of Birth</div>
             <div className="text-muted-foreground w-4/5">{patientDob}</div>
+          </div>
+
+          <div className="flex  gap-2">
+            <div className="font-medium w-1/5">Medicare Card Number</div>
+            <div className="text-muted-foreground w-4/5">{patientMedicareNumber ?? "-"}</div>
           </div>
 
           <div className="flex gap-2">

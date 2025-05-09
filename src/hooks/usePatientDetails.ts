@@ -10,6 +10,7 @@ function usePatientDetails(patient: Patient | null) {
     patientAge,
     patientDob,
     patientSexAtBirth,
+    patientMedicareNumber,
   } = useMemo(() => {
     if (!patient) {
       return {
@@ -18,6 +19,7 @@ function usePatientDetails(patient: Patient | null) {
         patientAge: "",
         patientDob: "",
         patientSexAtBirth: "",
+        patientMedicareNumber: "",
       };
     }
 
@@ -57,6 +59,9 @@ function usePatientDetails(patient: Patient | null) {
       sexAtBirthCodeableConcept?.coding?.[0].code ??
       "";
 
+    const medicareIdentifier = patient.identifier?.find(ident => ident.type?.coding?.some(c => c.system === "http://terminology.hl7.org/CodeSystem/v2-0203" && c.code === "MC"));
+    const medicareNumber = medicareIdentifier?.value;
+
     return {
       patientName: patientName,
       patientGender: patient.gender
@@ -65,6 +70,7 @@ function usePatientDetails(patient: Patient | null) {
       patientAge: ageText,
       patientDob: dobText,
       patientSexAtBirth: sexAtBirthText,
+      patientMedicareNumber: medicareNumber,
     };
   }, [patient]);
 
@@ -74,6 +80,7 @@ function usePatientDetails(patient: Patient | null) {
     patientAge,
     patientDob,
     patientSexAtBirth,
+    patientMedicareNumber,
   };
 }
 
