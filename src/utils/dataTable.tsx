@@ -25,7 +25,7 @@ export function createPatientTableColumns(
       cell: ({ row }) => (
         <div
           className={`text-sm ${
-            selectedPatientId === row.getValue("id")
+            selectedPatientId === row.original.id
               ? "font-medium text-blue-800"
               : ""
           }`}
@@ -35,29 +35,12 @@ export function createPatientTableColumns(
       ),
     },
     {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => (
-        <div className="flex">
-          <div
-            className={`px-2 py-0.5 rounded ${
-              selectedPatientId === row.getValue("id")
-                ? getSelectedDataIDColorClass(row.original.resourceType)
-                : "bg-gray-100 text-gray-600"
-            }`}
-          >
-            {row.getValue("id") ?? ""}
-          </div>
-        </div>
-      ),
-    },
-    {
       accessorKey: "gender",
       header: "Gender",
       cell: ({ row }) => (
         <div
           className={`text-sm ${
-            selectedPatientId === row.getValue("id")
+            selectedPatientId === row.original.id
               ? "text-blue-800"
               : "text-muted-foreground"
           }`}
@@ -72,7 +55,7 @@ export function createPatientTableColumns(
       cell: ({ row }) => (
         <div
           className={`text-sm ${
-            selectedPatientId === row.getValue("id")
+            selectedPatientId === row.original.id
               ? "text-blue-800"
               : "text-muted-foreground"
           }`}
@@ -82,14 +65,44 @@ export function createPatientTableColumns(
       ),
     },
     {
+      accessorKey: "medicare",
+      header: "Medicare Card Number",
+      cell: ({ row }) => 
+        <div
+          className={`text-sm ${
+            selectedPatientId === row.original.id
+              ? "text-blue-800"
+              : "text-muted-foreground"
+          }`}
+        >
+          {row.getValue("medicare") ?? ""}
+        </div>
+      ,
+    },
+    {
+      accessorKey: "address",
+      header: "Address",
+      cell: ({ row }) => 
+        <div
+          className={`text-sm ${
+            selectedPatientId === row.original.id
+              ? "text-blue-800"
+              : "text-muted-foreground"
+          }`}
+        >
+          {row.getValue("address") ?? ""}
+        </div>
+      ,
+    },
+    {
       id: "actions",
       cell: ({ row }) => (
         <>
-          {selectedPatientId !== row.getValue("id") ? (
+          {selectedPatientId !== row.original.id ? (
             <Button
               variant="ghost"
               className="flex h-8 w-8 p-0 m-0"
-              onClick={() => onButtonClick(row.getValue("id"))}
+              onClick={() => onButtonClick(row.original.id)}
             >
               <MousePointerClick className="h-4 w-4" />
               <span className="sr-only">Set as context</span>

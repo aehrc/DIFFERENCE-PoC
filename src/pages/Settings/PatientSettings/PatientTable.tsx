@@ -44,13 +44,23 @@ function PatientTable({updateQueryOnSelection = true, filter}: PatientTableProps
   const { patients, isInitialLoading } = useFetchPatients();
 
   const patientTableData: PatientTableData[] = useMemo(() => {
-    return patients.map((patient) => ({
-      id: patient.id ?? nanoid(),
-      name: patient.name ? humanName(patient) : "Unnamed",
-      gender: patient.gender ?? "-",
-      dob: patient.birthDate ?? "-",
-      resourceType: patient.resourceType,
-    }));
+    return patients.map((patient) => {
+      const address = patient.address ? patient.address[0] : null;
+      const medicareIdentifier = patient.identifier?.find(ident => ident.type?.coding?.some(c => c.system === "http://terminology.hl7.org/CodeSystem/v2-0203" && c.code === "MC"));
+      
+      return ({
+        id: patient.id ?? nanoid(),
+        name: patient.name ? humanName(patient) : "Unnamed",
+        gender: patient.gender ?? "-",
+        dob: patient.birthDate ?? "-",
+        address: address ? (
+          address.text ?? 
+          `${address.line?.join(", ")}, ${[address.district, address.city, address.state, address.postalCode].join(" ")}`
+        ): "-",
+        medicare: medicareIdentifier?.value ?? "-",
+        resourceType: patient.resourceType,
+      })
+    });
   }, [patients]);
 
   const columns = createPatientTableColumns(
