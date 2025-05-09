@@ -109,10 +109,7 @@ function PatientProfileCard(props: PatientProfileCardProps) {
                         </div>
                       ))}
                       <div className="text-muted-foreground">
-                        {address.city}
-                      </div>
-                      <div className="text-muted-foreground">
-                        {address.postalCode} {address.state}
+                        {[address.district, address.city, address.postalCode, address.state].join(" ")}
                       </div>
                     </div>
                   ))
