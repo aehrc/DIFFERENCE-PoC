@@ -60,7 +60,7 @@ function LaunchButton() {
         }`}
       >
         <Button
-          className="text-white bg-blue-500 hover:bg-blue-600"
+          variant="secondary"
           disabled={validationErrors.length > 0}
         >
           Launch {appName} <ArrowRight className="ml-2 h-4 w-4" />

@@ -34,13 +34,13 @@ function CopyButton(props: CopyButtonProps) {
   return (
     <div className="flex items-center gap-x-0.5">
       {isCopied ? (
-        <span className="text-xs text-muted-foreground">Copied!</span>
+        <span className="rounded-sm bg-popover p-1.5 text-xs text-popover-foreground">Copied!</span>
       ) : null}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
             variant="ghost"
-            className="flex h-7 w-7 p-0 m-0 text-muted-foreground"
+            className="flex h-7 w-7 p-0 m-0 bg-muted text-muted-foreground"
             onClick={copyUrlToClipboard}
           >
             {isCopied ? (

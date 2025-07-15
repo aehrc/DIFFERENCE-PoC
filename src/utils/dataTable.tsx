@@ -26,7 +26,7 @@ export function createPatientTableColumns(
         <div
           className={`text-sm ${
             selectedPatientId === row.original.id
-              ? "font-medium text-blue-800"
+              ? "font-medium text-primary"
               : ""
           }`}
         >
@@ -41,7 +41,7 @@ export function createPatientTableColumns(
         <div
           className={`text-sm ${
             selectedPatientId === row.original.id
-              ? "text-blue-800"
+              ? "text-primary"
               : "text-muted-foreground"
           }`}
         >
@@ -56,7 +56,7 @@ export function createPatientTableColumns(
         <div
           className={`text-sm ${
             selectedPatientId === row.original.id
-              ? "text-blue-800"
+              ? "text-primary"
               : "text-muted-foreground"
           }`}
         >
@@ -71,7 +71,7 @@ export function createPatientTableColumns(
         <div
           className={`text-sm ${
             selectedPatientId === row.original.id
-              ? "text-blue-800"
+              ? "text-primary"
               : "text-muted-foreground"
           }`}
         >
@@ -86,7 +86,7 @@ export function createPatientTableColumns(
         <div
           className={`text-sm ${
             selectedPatientId === row.original.id
-              ? "text-blue-800"
+              ? "text-primary"
               : "text-muted-foreground"
           }`}
         >
@@ -226,7 +226,7 @@ export function createEncounterTableColumns(
             className={`px-2 py-0.5 rounded ${
               selectedPatientId === row.getValue("id")
                 ? "bg-orange-100 text-orange-700"
-                : "bg-blue-100 text-blue-800"
+                : "bg-muted text-primary"
             }`}
           >
             {row.getValue("patientRef") ?? ""}
@@ -328,7 +328,7 @@ export function getSelectedDataIDColorClass(resourceType: string | null) {
 
   switch (resourceType) {
     case "Patient":
-      return "bg-blue-100 text-blue-800";
+      return "bg-muted text-primary";
     case "Practitioner":
       return "bg-purple-100 text-purple-700";
     case "Encounter":
@@ -347,7 +347,7 @@ export function getSelectedDataRowColorClass(resourceType: string | null) {
 
   switch (resourceType) {
     case "Patient":
-      return "bg-blue-50 hover:bg-blue-50";
+      return "bg-muted hover:bg-muted";
     case "Practitioner":
       return "bg-purple-50 hover:bg-purple-50";
     case "Encounter":

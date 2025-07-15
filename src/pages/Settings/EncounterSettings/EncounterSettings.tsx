@@ -19,7 +19,7 @@ function EncounterSettings() {
               <div className="text-xs">
                 Patient context:{" "}
                 <span
-                  className={"px-2 py-0.5 rounded bg-blue-100 text-blue-800"}
+                  className={"px-2 py-0.5 rounded bg-muted text-primary"}
                 >
                   {selectedPatient.id}
                 </span>

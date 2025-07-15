@@ -49,7 +49,7 @@ function PatientProfileCard(props: PatientProfileCardProps) {
           <div className="flex gap-2">
             <div className="font-medium w-1/5">Patient ID</div>
             <div className="flex w-4/5">
-              <div className="px-1.5 py-0.5 rounded text-blue-800 bg-blue-100 ">
+              <div className="px-1.5 py-0.5 rounded text-primary bg-muted ">
                 {patient.id}
               </div>
             </div>

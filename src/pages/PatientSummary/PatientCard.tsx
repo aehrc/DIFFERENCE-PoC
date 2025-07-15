@@ -38,7 +38,7 @@ function PatientCard(props: PatientCardProps) {
         {patient ? (
           <div className="flex items-center">
             <div className="flex flex-1 items-center py-2.5 gap-6">
-              <User className="h-16 w-16 p-3 rounded-full bg-blue-100 text-blue-800" />
+              <User className="h-16 w-16 p-3 rounded-full bg-muted text-primary" />
               <div className="flex flex-col gap-0.5">
                 <div className="text-2xl font-semibold">{patientName}</div>
                 <div className="text-md">{patientDob}</div>

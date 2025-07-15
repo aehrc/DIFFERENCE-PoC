@@ -10,7 +10,7 @@ function EncounterNavProfile() {
     encounterId && encounterId !== "" ? encounterId : "Not selected";
 
   return (
-    <div className="flex items-center gap-2.5 h-16 px-2.5 bg-muted/80 rounded-lg">
+    <div className="flex items-center gap-2.5 h-16 px-2.5 bg-muted rounded-lg">
       <div className="flex flex-col items-center text-orange-500">
         <Ambulance className="h-5 w-5" />
         <div className="text-xs">Encounter</div>

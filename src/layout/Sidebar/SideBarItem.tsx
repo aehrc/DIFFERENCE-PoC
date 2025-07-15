@@ -25,8 +25,8 @@ function SideBarItem(props: SideBarItemProps) {
         <div
           onClick={() => onSwitchActivePage(path)}
           className={`flex h-9 w-9 items-center justify-center rounded-lg ${
-            pathIsActive ? "text-primary" : "text-muted-foreground"
-          } transition-colors cursor-pointer hover:text-secondary-foreground md:h-8 md:w-8`}
+            pathIsActive ? "text-primary" : "text-muted-foreground hover:text-muted-foreground/60 cursor-pointer"
+          } transition-colors   md:h-8 md:w-8`}
         >
           {cloneElement(Icon, { className: "h-5 w-5" })}
           <span className="sr-only">{title}</span>

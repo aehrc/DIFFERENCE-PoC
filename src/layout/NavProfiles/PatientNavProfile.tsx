@@ -42,8 +42,8 @@ function PatientNavProfile() {
   }, [newPatient]);
 
   return (
-    <div className="flex items-center gap-3 h-16 px-3 bg-muted/80 rounded-lg">
-      <div className="flex flex-col items-center text-blue-800">
+    <div className="flex items-center gap-3 h-16 px-3 bg-muted rounded-lg">
+      <div className="flex flex-col items-center text-primary">
         <User className="h-5 w-5" />
         <div className="text-xs">Patient</div>
       </div>
@@ -67,7 +67,7 @@ function PatientNavProfile() {
               {humanName(selectedPatient)}
             </div>
             <div className="flex">
-              <div className="text-xs px-1.5 py-0.5 rounded text-blue-800 bg-blue-100">
+              <div className="text-xs px-1.5 py-0.5 rounded text-primary bg-accent/40">
                 {selectedPatient.id}
               </div>
             </div>

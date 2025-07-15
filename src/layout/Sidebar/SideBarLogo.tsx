@@ -14,7 +14,7 @@ function SideBarLogo(props: SideBarLogoProps) {
     <a
       href="#"
       onClick={() => onSwitchActivePage(path)}
-      className={`group flex h-9 w-9 items-center justify-center text-lg text-green-700`}
+      className={`group flex h-12 w-12 items-center justify-center text-lg`}
     >
       {cloneElement(Icon, {
         className: "transition-all group-hover:scale-110",

@@ -50,7 +50,7 @@ function UserNavProfile() {
   }, [newUser]);
 
   return (
-    <div className="flex items-center gap-3 h-16 px-3 bg-muted/80 rounded-lg">
+    <div className="flex items-center gap-3 h-16 px-3 bg-muted rounded-lg">
       <div className="flex flex-col items-center text-purple-800">
         <BriefcaseMedical className="h-5 w-5" />
         <div className="text-xs">User</div>
