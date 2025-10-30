@@ -17,7 +17,7 @@ function SideBarLogo(props: SideBarLogoProps) {
       className={`group flex h-12 w-12 items-center justify-center text-lg`}
     >
       {cloneElement(Icon, {
-        className: "transition-all group-hover:scale-110",
+        className: "transition-all group-hover:scale-110 text-primary",
       })}
       <span className="sr-only">{title}</span>
     </a>

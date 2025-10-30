@@ -3,7 +3,8 @@ import SideBarItem from "@/layout/Sidebar/SideBarItem.tsx";
 import SideBarLogo from "@/layout/Sidebar/SideBarLogo.tsx";
 import useActivePage from "@/hooks/useActivePage.ts";
 import useLauncherQuery from "@/hooks/useLauncherQuery.ts";
-import logo from "@/img/bioc-logo.svg";
+import DataSaverOnIcon from "@mui/icons-material/DataSaverOn";
+import { BRANDING } from "@/globals";
 
 function SideBar() {
   const { activePath, switchActivePage } = useActivePage();
@@ -13,6 +14,8 @@ function SideBar() {
   const isEmbeddedView = launch.is_embedded_view;
   const appName = query.app_name !== "" ? query.app_name : "SMART app";
 
+  const { logoUrl } = BRANDING;
+
   return (
     <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
       <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
@@ -20,7 +23,11 @@ function SideBar() {
           sidebarItem={{
             title: "Smart EHR Launcher",
             path: "/",
-            Icon: <img src={logo} />
+            Icon: logoUrl ? (
+              <img src={logoUrl} />
+            ) : (
+              <DataSaverOnIcon fontSize="large" />
+            ),
           }}
           onSwitchActivePage={switchActivePage}
         />

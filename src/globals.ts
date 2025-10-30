@@ -21,12 +21,12 @@ export const FHIR_SERVER_URL =
   "https://proxy.smartforms.io/v/r4/fhir";
 
 export const SECONDARY_FHIR_SERVER_URL =
-  import.meta.env.VITE_SECONDARY_FHIR_SERVER_URL ??
-  "";
+  import.meta.env.VITE_SECONDARY_FHIR_SERVER_URL ?? "";
 
 // Determine if authorization is required
 export const AUTH_REQUIRED = import.meta.env.VITE_AUTH_REQUIRED === "true";
-export const AUTH_REQUIRED_SECONDARY = import.meta.env.VITE_AUTH_REQUIRED_SECONDARY === "true";
+export const AUTH_REQUIRED_SECONDARY =
+  import.meta.env.VITE_AUTH_REQUIRED_SECONDARY === "true";
 
 // Launch parameter configuration
 export const LAUNCH_PARAM_CONFIG =
@@ -38,16 +38,23 @@ export const LAUNCH_PARAM_CONFIG =
 export const OAUTH = {
   grantType: import.meta.env.VITE_OAUTH_GRANT_TYPE ?? "",
   scope: import.meta.env.VITE_OAUTH_SCOPE ?? "",
-  clientId: import.meta.env.VITE_OAUTH_CLIENT_ID ?? ""
-}
+  clientId: import.meta.env.VITE_OAUTH_CLIENT_ID ?? "",
+};
 export const OAUTH_SECONDARY = {
   grantType: import.meta.env.VITE_OAUTH_GRANT_TYPE_SECONDARY ?? "",
   scope: import.meta.env.VITE_OAUTH_SCOPE_SECONDARY ?? "",
-  clientId: import.meta.env.VITE_OAUTH_CLIENT_ID_SECONDARY ?? ""
-}
+  clientId: import.meta.env.VITE_OAUTH_CLIENT_ID_SECONDARY ?? "",
+};
 
 // Questionnaire repository configuration (optional, mainly used for launching Smart Forms)
 export const FORMS_SERVER_URL =
   import.meta.env.VITE_FORMS_SERVER_URL ??
   "https://smartforms.csiro.au/api/fhir";
 export const FORMS_SERVER_TOKEN = import.meta.env.VITE_FORMS_SERVER_TOKEN ?? "";
+
+// Branding
+export const BRANDING = {
+  logoUrl: import.meta.env.VITE_LOGO_URL ?? "",
+  bannerUrl: import.meta.env.VITE_BANNER_URL ?? "",
+  stylesheetUrl: import.meta.env.VITE_STYLESHEET_URL ?? "",
+};

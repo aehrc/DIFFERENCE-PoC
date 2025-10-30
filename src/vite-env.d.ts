@@ -48,6 +48,11 @@ interface ImportMetaEnv {
   // Questionnaire repository configuration (optional, mainly used for launching Smart Forms)
   readonly VITE_FORMS_SERVER_URL: string;
   readonly VITE_FORMS_SERVER_TOKEN: string;
+
+  // Branding
+  readonly VITE_LOGO_URL: string;
+  readonly VITE_BANNER_URL: string;
+  readonly VITE_STYLESHEET_URL: string;
 }
 
 interface ImportMeta {

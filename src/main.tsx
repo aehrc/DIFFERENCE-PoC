@@ -4,6 +4,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import SourceFhirServerContextProvider from "./contexts/SourceFhirServerContext.tsx";
 import "@/styles/globals.css";
 import { getFhirServerBaseUrl } from "./utils/misc.ts";
+import { BRANDING } from "./globals.ts";
+
+const { stylesheetUrl } = BRANDING;
+
+if (stylesheetUrl) {
+  import(/* @vite-ignore */ stylesheetUrl);
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
