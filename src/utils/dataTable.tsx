@@ -1,3 +1,20 @@
+/*
+ * Copyright 2025 Commonwealth Scientific and Industrial Research
+ * Organisation (CSIRO) ABN 41 687 119 230.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { ColumnDef } from "@tanstack/react-table";
 import { Encounter, Patient, Practitioner, Questionnaire } from "fhir/r4";
 import { Button } from "@/components/ui/button.tsx";
@@ -67,7 +84,7 @@ export function createPatientTableColumns(
     {
       accessorKey: "medicare",
       header: "Medicare Card Number",
-      cell: ({ row }) => 
+      cell: ({ row }) => (
         <div
           className={`text-sm ${
             selectedPatientId === row.original.id
@@ -77,12 +94,12 @@ export function createPatientTableColumns(
         >
           {row.getValue("medicare") ?? ""}
         </div>
-      ,
+      ),
     },
     {
       accessorKey: "address",
       header: "Address",
-      cell: ({ row }) => 
+      cell: ({ row }) => (
         <div
           className={`text-sm ${
             selectedPatientId === row.original.id
@@ -92,7 +109,7 @@ export function createPatientTableColumns(
         >
           {row.getValue("address") ?? ""}
         </div>
-      ,
+      ),
     },
     {
       id: "actions",
@@ -100,6 +117,7 @@ export function createPatientTableColumns(
         <>
           {selectedPatientId !== row.original.id ? (
             <Button
+              title="Set as context"
               variant="ghost"
               className="flex h-8 w-8 p-0 m-0"
               onClick={() => onButtonClick(row.original.id)}
@@ -151,7 +169,7 @@ export function createUserTableColumns(
       cell: ({ row }) => (
         <div className="flex">
           <div
-            className={`px-2 py-0.5 rounded ${
+            className={`px-2 py-0.5 rounded text-xs ${
               selectedUserId === row.getValue("id")
                 ? getSelectedDataIDColorClass(row.original.resourceType)
                 : "bg-gray-100 text-gray-600"
@@ -168,6 +186,7 @@ export function createUserTableColumns(
         <>
           {selectedUserId !== row.getValue("id") ? (
             <Button
+              title="Set as context"
               variant="ghost"
               className="flex h-8 w-8 p-0 m-0"
               onClick={() => onButtonClick(row.getValue("id"))}
@@ -206,7 +225,7 @@ export function createEncounterTableColumns(
       cell: ({ row }) => (
         <div className="flex">
           <div
-            className={`px-2 py-0.5 rounded ${
+            className={`px-2 py-0.5 rounded text-xs ${
               selectedEncounterId === row.getValue("id")
                 ? "bg-orange-100 text-orange-700"
                 : "bg-gray-100 text-gray-600"
@@ -223,7 +242,7 @@ export function createEncounterTableColumns(
       cell: ({ row }) => (
         <div className="flex">
           <div
-            className={`px-2 py-0.5 rounded ${
+            className={`px-2 py-0.5 rounded text-xs ${
               selectedPatientId === row.getValue("id")
                 ? "bg-orange-100 text-orange-700"
                 : "bg-muted text-primary"
@@ -238,6 +257,11 @@ export function createEncounterTableColumns(
       id: "actions",
       cell: ({ row }) => (
         <Button
+          title={
+            selectedEncounterId === row.getValue("id")
+              ? "Clear"
+              : "Set as context"
+          }
           variant="ghost"
           className="flex h-8 w-8 p-0 m-0"
           onClick={() => onButtonClick(row.getValue("id"))}
@@ -247,7 +271,11 @@ export function createEncounterTableColumns(
           ) : (
             <MousePointerClick className="h-4 w-4" />
           )}
-          <span className="sr-only">Set as context</span>
+          <span className="sr-only">
+            {selectedEncounterId === row.getValue("id")
+              ? "Clear"
+              : "Set as context"}
+          </span>
         </Button>
       ),
     },
@@ -289,7 +317,7 @@ export function createQuestionnaireTableColumns(
       cell: ({ row }) => (
         <div className="flex">
           <div
-            className={`px-2 py-0.5 rounded ${
+            className={`px-2 py-0.5 rounded text-xs ${
               selectedQuestionnaireId === row.getValue("id")
                 ? getSelectedDataIDColorClass(row.original.resourceType)
                 : "bg-gray-100 text-gray-600"
@@ -304,6 +332,11 @@ export function createQuestionnaireTableColumns(
       id: "actions",
       cell: ({ row }) => (
         <Button
+          title={
+            selectedQuestionnaireId === row.getValue("id")
+              ? "Clear"
+              : "Set as context"
+          }
           variant="ghost"
           className="flex h-8 w-8 p-0 m-0"
           onClick={() => onButtonClick(row.getValue("id"))}
@@ -313,7 +346,11 @@ export function createQuestionnaireTableColumns(
           ) : (
             <MousePointerClick className="h-4 w-4" />
           )}
-          <span className="sr-only">Set as context</span>
+          <span className="sr-only">
+            {selectedQuestionnaireId === row.getValue("id")
+              ? "Clear"
+              : "Set as context"}
+          </span>
         </Button>
       ),
     },

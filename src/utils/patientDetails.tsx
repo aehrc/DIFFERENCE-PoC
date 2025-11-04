@@ -1,12 +1,34 @@
+/*
+ * Copyright 2025 Commonwealth Scientific and Industrial Research
+ * Organisation (CSIRO) ABN 41 687 119 230.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import dayjs, { Dayjs } from "dayjs";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge.tsx";
 import { Observation, ObservationComponent, Period } from "fhir/r4";
 import { Workflow } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { MedicationLabel } from "@/utils/medicationText.ts";
 
 interface TableData {
-  source?: string
+  source?: string;
 }
 
 // Encounter functions and types
@@ -35,7 +57,7 @@ export function createEncounterTableColumns(): ColumnDef<EncounterTableData>[] {
       header: "ID",
       cell: ({ row }) => (
         <div className="flex">
-          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs">
             {row.getValue("id") ?? "-"}
           </div>
         </div>
@@ -128,7 +150,7 @@ export function createConditionTableColumns(): ColumnDef<ConditionTableData>[] {
       header: "ID",
       cell: ({ row }) => (
         <div className="flex">
-          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs">
             {row.getValue("id") ?? "-"}
           </div>
         </div>
@@ -176,31 +198,57 @@ export function createConditionTableColumns(): ColumnDef<ConditionTableData>[] {
 }
 
 // MedicationRequest functions and types
-export interface MedicationTableData extends TableData {
+export interface MedicationRequestTableData extends TableData {
   id: string;
-  medication: string;
+  medication: MedicationLabel;
   status: string;
   authoredOn: Dayjs | string | null;
 }
 
-export function createMedicationTableColumns(): ColumnDef<MedicationTableData>[] {
+export function createMedicationRequestTableColumns(): ColumnDef<MedicationRequestTableData>[] {
   return [
     createSourceServerColumn(),
     {
       accessorKey: "medication",
       header: "Medication",
-      cell: ({ row }) => (
-        <div className="flex">
-          <div className="font-medium">{row.getValue("medication") ?? "-"}</div>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const { text, source, referenceLink } = row.getValue(
+          "medication"
+        ) as MedicationLabel;
+        return (
+          <div className="flex min-w-[280px]">
+            <div className="space-y-1">
+              <div className="font-medium">{text ?? "-"}</div>
+              {source ? (
+                <div className="text-xs text-muted-foreground">
+                  From: {source}{" "}
+                  {referenceLink ? (
+                    <span className="text-xs text-muted-foreground">
+                      -{" "}
+                      <a
+                        href={referenceLink}
+                        title={referenceLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                      >
+                        View referenced Medication
+                      </a>
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "id",
       header: "ID",
       cell: ({ row }) => (
         <div className="flex">
-          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs">
             {row.getValue("id") ?? "-"}
           </div>
         </div>
@@ -244,6 +292,118 @@ export function createMedicationTableColumns(): ColumnDef<MedicationTableData>[]
   ];
 }
 
+// MedicationRequest functions and types
+export interface MedicationStatementTableData extends TableData {
+  id: string;
+  medication: MedicationLabel;
+  status: string;
+  dosage: string;
+  reasonCode: string;
+  effective: Dayjs | null;
+}
+
+export function createMedicationStatementTableColumns(): ColumnDef<MedicationStatementTableData>[] {
+  return [
+    createSourceServerColumn(),
+    {
+      accessorKey: "medication",
+      header: "Medication",
+      cell: ({ row }) => {
+        const { text, source, referenceLink } = row.getValue(
+          "medication"
+        ) as MedicationLabel;
+        return (
+          <div className="flex min-w-[390px]">
+            <div className="space-y-1">
+              <div className="font-medium">{text ?? "-"}</div>
+              {source ? (
+                <div className="text-xs text-muted-foreground">
+                  From: {source}{" "}
+                  {referenceLink ? (
+                    <span className="text-xs text-muted-foreground">
+                      -{" "}
+                      <a
+                        href={referenceLink}
+                        title={referenceLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                      >
+                        View referenced Medication
+                      </a>
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "id",
+      header: "ID",
+      cell: ({ row }) => (
+        <div className="flex">
+          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs">
+            {row.getValue("id") ?? "-"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) =>
+        row.getValue("status") ? (
+          <Badge variant="outline">{row.getValue("status")}</Badge>
+        ) : (
+          "-"
+        ),
+    },
+    {
+      accessorKey: "dosage",
+      header: "Dosage",
+      cell: ({ row }) =>
+        row.getValue("dosage") ? (
+          <div className="flex">
+            <div>{row.getValue("dosage") ?? "-"}</div>
+          </div>
+        ) : (
+          "-"
+        ),
+    },
+    {
+      accessorKey: "reasonCode",
+      header: "Reason Code",
+      cell: ({ row }) =>
+        row.getValue("reasonCode") ? (
+          <div className="flex">
+            <div>{row.getValue("reasonCode") ?? "-"}</div>
+          </div>
+        ) : (
+          "-"
+        ),
+    },
+    {
+      accessorKey: "effective",
+      header: "Effective",
+      sortingFn: (a, b) => {
+        if (a.original.effective === null || b.original.effective === null) {
+          return 0;
+        }
+
+        return a.original.effective.diff(b.original.effective);
+      },
+      cell: ({ row }) => {
+        return row.original.effective
+          ? row.original.effective.format("DD/MM/YYYY")
+          : "-";
+      },
+    },
+  ];
+}
+
 // AllergyIntolerances functions and types
 export interface AllergyTableData extends TableData {
   id: string;
@@ -271,7 +431,7 @@ export function createAllergyTableColumns(): ColumnDef<AllergyTableData>[] {
       header: "ID",
       cell: ({ row }) => (
         <div className="flex">
-          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs">
             {row.getValue("id") ?? "-"}
           </div>
         </div>
@@ -351,7 +511,7 @@ export function createProcedureTableColumns(): ColumnDef<ProcedureTableData>[] {
       header: "ID",
       cell: ({ row }) => (
         <div className="flex">
-          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs">
             {row.getValue("id") ?? "-"}
           </div>
         </div>
@@ -422,7 +582,7 @@ export function createImmunizationTableColumns(): ColumnDef<ImmunizationTableDat
       header: "ID",
       cell: ({ row }) => (
         <div className="flex">
-          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs">
             {row.getValue("id") ?? "-"}
           </div>
         </div>
@@ -495,7 +655,7 @@ export function createObservationTableColumns(): ColumnDef<ObservationTableData>
       header: "ID",
       cell: ({ row }) => (
         <div className="flex max-w-64">
-          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-sm">
+          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs">
             {row.getValue("id") ?? "-"}
           </div>
         </div>
@@ -630,13 +790,20 @@ export function getObservationOrComponentValue(
   item: Observation | ObservationComponent
 ) {
   if (item.valueQuantity) {
-    // Add unit if it exists
-    if (item.valueQuantity.unit) {
-      return item.valueQuantity.value + " " + item.valueQuantity.unit;
+    let valueQuantityText = item.valueQuantity.value ?? "";
+    if (item.valueQuantity.comparator) {
+      valueQuantityText =
+        item.valueQuantity.comparator + " " + valueQuantityText;
     }
 
-    if (item.valueQuantity.value) {
-      return item.valueQuantity.value;
+    // Add unit if it exists
+    if (item.valueQuantity.unit) {
+      valueQuantityText = valueQuantityText + " " + item.valueQuantity.unit;
+    }
+
+    // If valueQuantityText is available at this point, return it
+    if (valueQuantityText) {
+      return valueQuantityText;
     }
 
     const dataAbsentReason = item.valueQuantity.extension?.find(
@@ -667,6 +834,20 @@ export function getObservationOrComponentValue(
     return valueText;
   }
 
+  if (item.valueRange) {
+    let valueRangeLowText = item.valueRange.low?.value ?? "*";
+    if (item.valueRange.low?.unit) {
+      valueRangeLowText += " " + item.valueRange.low.unit;
+    }
+
+    let valueRangeHighText = item.valueRange.high?.value ?? "*";
+    if (item.valueRange.high?.unit) {
+      valueRangeHighText += " " + item.valueRange.high.unit;
+    }
+
+    return `${valueRangeLowText} - ${valueRangeHighText}`;
+  }
+
   if (item.valueString) {
     return item.valueString;
   }
@@ -682,19 +863,21 @@ export function getObservationOrComponentValue(
   return null;
 }
 
-function createSourceServerColumn<T extends TableData>() : ColumnDef<T> {
-  return ({
+function createSourceServerColumn<T extends TableData>(): ColumnDef<T> {
+  return {
     accessorKey: "source",
     header: "",
-    cell: ({ row }) => (
-      row.getValue("source") ?
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Workflow className="w-5 h-5" />
-        </TooltipTrigger>
-        <TooltipContent side="right"><b>Source: </b>{row.getValue("source")}</TooltipContent>
-      </Tooltip>
-      : null
-    ),
-  })
+    cell: ({ row }) =>
+      row.getValue("source") ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Workflow className="w-5 h-5" />
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <b>Source: </b>
+            {row.getValue("source")}
+          </TooltipContent>
+        </Tooltip>
+      ) : null,
+  };
 }

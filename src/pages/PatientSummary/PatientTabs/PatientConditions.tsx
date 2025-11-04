@@ -1,3 +1,20 @@
+/*
+ * Copyright 2025 Commonwealth Scientific and Industrial Research
+ * Organisation (CSIRO) ABN 41 687 119 230.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { useContext, useMemo } from "react";
 import { ConditionTableData } from "@/utils/patientDetails.ts";
 import useFetchConditions from "@/hooks/useFetchConditions.ts";
@@ -19,14 +36,20 @@ interface PatientConditionsProps {
 }
 
 function PatientConditions(props: PatientConditionsProps) {
-  const { patientId } = props;  
+  const { patientId } = props;
   const { linkedPatientIds } = useContext(PatientContext);
 
   const primaryData = useFetchConditions(patientId);
-  const linkedData = Object.entries(linkedPatientIds).map(([serverUrl, patientId]) => useFetchConditions(patientId, serverUrl));
+  const linkedData = Object.entries(linkedPatientIds).map(
+    ([serverUrl, patientId]) => useFetchConditions(patientId, serverUrl)
+  );
 
   const allData = [primaryData, ...linkedData];
-  const allConditions = allData.map(data => data.conditions.map(entry => ({...entry, source: data.serverUrl}))).flat()
+  const allConditions = allData
+    .map((data) =>
+      data.conditions.map((entry) => ({ ...entry, source: data.serverUrl }))
+    )
+    .flat();
 
   const conditionTableData: ConditionTableData[] = useMemo(() => {
     return allConditions.map((entry) => {
@@ -52,7 +75,7 @@ function PatientConditions(props: PatientConditionsProps) {
           "",
         onsetDate: entry.onsetDateTime ? dayjs(entry.onsetDateTime) : null,
         recordedDate: entry.recordedDate ? dayjs(entry.recordedDate) : null,
-        source: entry.source
+        source: entry.source,
       };
     });
   }, [allConditions]);
@@ -71,7 +94,7 @@ function PatientConditions(props: PatientConditionsProps) {
         <SimpleTable
           data={conditionTableData}
           columns={columns}
-          isLoading={allData.some(data => data.isInitialLoading)}
+          isLoading={allData.some((data) => data.isInitialLoading)}
           initialSorting={[{ id: "recordedDate", desc: true }]}
         />
       </CardContent>

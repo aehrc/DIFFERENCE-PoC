@@ -1,6 +1,8 @@
 import { FhirServerContext } from "@/contexts/FhirServerContext";
-import PatientContextProvider, { PatientContext } from "@/contexts/PatientContext";
-import { getSecondaryFhirServerBaseUrl, humanName } from "@/utils/misc";
+import PatientContextProvider, {
+  PatientContext,
+} from "@/contexts/PatientContext";
+import { humanName } from "@/utils/misc";
 import { useContext } from "react";
 import ConnectToSecondaryServerButton from "../ConnectToSecondaryServerButton";
 import { Button } from "@/components/ui/button";
@@ -8,11 +10,18 @@ import SourceFhirServerContextProvider from "@/contexts/SourceFhirServerContext"
 import { Unlink } from "lucide-react";
 import PatientSummaryWithSelection from "./PatientProfileWithSelection";
 import PatientProfile from "./PatientProfile";
+import useConfig from "@/hooks/useConfig";
 
 function DualPatientProfile() {
+  const { secondaryFhirServer } = useConfig();
+  const secondaryFhirServerUrl = secondaryFhirServer?.fhirServerUrl || "";
   const { selectedPatient, updatePatient } = useContext(PatientContext);
-  const secondaryFhirServerContext = useContext(FhirServerContext)[getSecondaryFhirServerBaseUrl()];
-  const secondaryAuthMissing = getSecondaryFhirServerBaseUrl() && secondaryFhirServerContext?.authRequired && !secondaryFhirServerContext?.accessToken;
+  const secondaryFhirServerContext =
+    useContext(FhirServerContext)[secondaryFhirServerUrl];
+  const secondaryAuthMissing =
+    secondaryFhirServerUrl &&
+    secondaryFhirServerContext?.authRequired &&
+    !secondaryFhirServerContext?.accessToken;
   const nameFilter = selectedPatient ? humanName(selectedPatient) : undefined;
 
   const linkPatient = (id?: string) => {
@@ -25,13 +34,15 @@ function DualPatientProfile() {
           type: "seealso",
           other: {
             type: "Patient",
-            reference: `${getSecondaryFhirServerBaseUrl()}/Patient/${id}`,
+            reference: `${secondaryFhirServerUrl}/Patient/${id}`,
           },
         });
         updatePatient(selectedPatient);
       } else {
         if (selectedPatient.link) {
-          selectedPatient.link = selectedPatient.link.filter(l => l.type !== "seealso" || l.other.type !== "Patient");
+          selectedPatient.link = selectedPatient.link.filter(
+            (l) => l.type !== "seealso" || l.other.type !== "Patient"
+          );
           updatePatient(selectedPatient);
         }
       }
@@ -39,8 +50,13 @@ function DualPatientProfile() {
   };
 
   let secondaryPatientId: string | undefined;
-  if (selectedPatient && getSecondaryFhirServerBaseUrl()) {
-    const link = selectedPatient.link?.find(l => l.type === "seealso" && l.other.type === "Patient" && l.other.reference?.startsWith(getSecondaryFhirServerBaseUrl()));
+  if (selectedPatient && secondaryFhirServerUrl) {
+    const link = selectedPatient.link?.find(
+      (l) =>
+        l.type === "seealso" &&
+        l.other.type === "Patient" &&
+        l.other.reference?.startsWith(secondaryFhirServerUrl)
+    );
     if (link) {
       const reference = link.other.reference;
       secondaryPatientId = reference?.split("/").pop();
@@ -53,8 +69,8 @@ function DualPatientProfile() {
         <PatientProfile />
         {secondaryAuthMissing ? <ConnectToSecondaryServerButton /> : null}
       </div>
-      {getSecondaryFhirServerBaseUrl() && !secondaryAuthMissing ? (
-        <SourceFhirServerContextProvider fhirServerUrl={getSecondaryFhirServerBaseUrl()}>
+      {secondaryFhirServerUrl && !secondaryAuthMissing ? (
+        <SourceFhirServerContextProvider fhirServerUrl={secondaryFhirServerUrl}>
           <PatientContextProvider patientId={secondaryPatientId}>
             {secondaryPatientId ? (
               <div className="grid gap-6">
@@ -72,13 +88,14 @@ function DualPatientProfile() {
                 </div>
               </div>
             ) : (
-              <PatientSummaryWithSelection linkPatient={linkPatient} filter={nameFilter} />
+              <PatientSummaryWithSelection
+                linkPatient={linkPatient}
+                filter={nameFilter}
+              />
             )}
           </PatientContextProvider>
         </SourceFhirServerContextProvider>
-        ) : 
-        null
-      }
+      ) : null}
     </div>
   );
 }

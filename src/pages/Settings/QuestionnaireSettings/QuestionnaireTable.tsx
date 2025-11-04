@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Commonwealth Scientific and Industrial Research
+ * Copyright 2025 Commonwealth Scientific and Industrial Research
  * Organisation (CSIRO) ABN 41 687 119 230.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,22 +15,29 @@
  * limitations under the License.
  */
 
-import { useContext, useMemo } from "react";
+import DataTable from "@/components/DataTable.tsx";
 import { QuestionnaireContext } from "@/contexts/QuestionnaireContext.tsx";
 import useFetchQuestionnaires from "@/hooks/useFetchQuestionnaires.ts";
+import useLauncherQuery from "@/hooks/useLauncherQuery.ts";
 import {
   createQuestionnaireTableColumns,
   QuestionnaireTableData,
 } from "@/utils/dataTable.tsx";
-import DataTable from "@/components/DataTable.tsx";
-import useLauncherQuery from "@/hooks/useLauncherQuery.ts";
-import { useSnackbar } from "notistack";
+import {
+  addOrUpdateFhirContext,
+  fhirContextIsQuestionnaireContext,
+  parseFhirContext,
+  removeFhirContext,
+  serializeFhirContext,
+} from "@/utils/fhirContext.ts";
 import { nanoid } from "nanoid";
+import { useSnackbar } from "notistack";
+import { useContext, useMemo } from "react";
 
 function QuestionnaireTable() {
   const { selectedQuestionnaire, setSelectedQuestionnaire } =
     useContext(QuestionnaireContext);
-  const { setQuery } = useLauncherQuery();
+  const { launch, setQuery } = useLauncherQuery();
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -54,14 +61,24 @@ function QuestionnaireTable() {
       (questionnaire) => questionnaire.id === id
     );
 
+    // Get current FHIR contexts as an array
+    const currentFhirContexts = parseFhirContext(launch.fhir_context);
+
     // Questionnaire not found OR questionnaire is already selected, unset questionnaire and context
     if (
       !newQuestionnaire ||
       selectedQuestionnaire?.id === newQuestionnaire.id
     ) {
       setSelectedQuestionnaire(null);
+
+      // Remove any questionnaire contexts from the array
+      const updatedContexts = removeFhirContext(
+        currentFhirContexts,
+        fhirContextIsQuestionnaireContext
+      );
+
       setQuery({
-        fhir_context: "",
+        fhir_context: serializeFhirContext(updatedContexts),
       });
       return;
     }
@@ -69,9 +86,17 @@ function QuestionnaireTable() {
     // Selected questionnaire lacks a URL, unset questionnaire and context
     if (!newQuestionnaire.url) {
       setSelectedQuestionnaire(null);
+
+      // Remove any questionnaire contexts from the array
+      const updatedContexts = removeFhirContext(
+        currentFhirContexts,
+        fhirContextIsQuestionnaireContext
+      );
+
       setQuery({
-        fhir_context: "",
+        fhir_context: serializeFhirContext(updatedContexts),
       });
+
       enqueueSnackbar(`Questionnaire ${newQuestionnaire.id} lacks a url`, {
         variant: "error",
         autoHideDuration: 3000,
@@ -79,20 +104,29 @@ function QuestionnaireTable() {
       return;
     }
 
-    // Set selected questionnaire and set query
+    // Set selected questionnaire and add/update questionnaire context in the array
     let questionnaireCanonical = newQuestionnaire.url;
     if (newQuestionnaire.version) {
       questionnaireCanonical += `|${newQuestionnaire.version}`;
     }
+
+    // Use Australian Digital Health namespace with the "new" role for fhirContext:
+    // https://confluence.hl7.org/spaces/FHIRI/pages/202409650/fhirContext+Role+Registry#:~:text=N/A-,http%3A//ns.electronichealth.net.au/smart/role/new,-URL%20made%20more
     const questionnaireFhirContext = {
-      role: "questionnaire-render-on-launch",
-      canonical: questionnaireCanonical,
+      role: "http://ns.electronichealth.net.au/smart/role/new",
       type: "Questionnaire",
+      canonical: questionnaireCanonical,
     };
+
+    // Add or update the questionnaire context in the array
+    const updatedContexts = addOrUpdateFhirContext(
+      currentFhirContexts,
+      questionnaireFhirContext
+    );
 
     setSelectedQuestionnaire(newQuestionnaire);
     setQuery({
-      fhir_context: `${JSON.stringify(questionnaireFhirContext)}`,
+      fhir_context: serializeFhirContext(updatedContexts),
     });
     enqueueSnackbar(`Questionnaire context set. ID:${newQuestionnaire.id} `, {
       variant: "success",
@@ -106,7 +140,17 @@ function QuestionnaireTable() {
       columns={columns}
       isLoading={isInitialLoading}
       selectedData={selectedQuestionnaire}
-      onClearSelectedData={() => handleSetQuestionnaireContext("")}
+      onClearSelectedData={() => {
+        setSelectedQuestionnaire(null);
+        const currentFhirContexts = parseFhirContext(launch.fhir_context);
+        const updatedContexts = removeFhirContext(
+          currentFhirContexts,
+          fhirContextIsQuestionnaireContext
+        );
+        setQuery({
+          fhir_context: serializeFhirContext(updatedContexts),
+        });
+      }}
     />
   );
 }

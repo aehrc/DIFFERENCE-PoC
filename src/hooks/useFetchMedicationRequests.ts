@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Commonwealth Scientific and Industrial Research
+ * Copyright 2025 Commonwealth Scientific and Industrial Research
  * Organisation (CSIRO) ABN 41 687 119 230.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,27 +16,36 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { Bundle, MedicationRequest } from "fhir/r4";
+import { Bundle, Medication, MedicationRequest } from "fhir/r4";
 import { useMemo } from "react";
 import { fetchResourceFromEHR } from "@/api/fhirApi.ts";
 import { getResources } from "@/utils/getResources.ts";
 import useFhirServerAxios from "@/hooks/useFhirServerAxios.ts";
+import { NUM_OF_RESOURCES_TO_FETCH } from "@/globals.ts";
 
 interface useFetchMedicationRequestsReturnParams {
   medicationRequests: MedicationRequest[];
+  referencedMedications: Medication[];
+  queryUrl: string;
   isInitialLoading: boolean;
   serverUrl: string;
 }
 
 function useFetchMedicationRequests(
   patientId: string,
-  serverUrl = "",
+  serverUrl = ""
 ): useFetchMedicationRequestsReturnParams {
-  const queryUrl = `/MedicationRequest?patient=${patientId}`;
+  const numOfSearchEntries = NUM_OF_RESOURCES_TO_FETCH;
+
+  const queryUrl = `/MedicationRequest?patient=${patientId}&_count=${numOfSearchEntries}&_sort=-authoredon&_include=MedicationRequest:medication`;
 
   const axiosInstance = useFhirServerAxios(serverUrl);
   const { data: bundle, isInitialLoading } = useQuery<Bundle>(
-    ["medicationRequests" + patientId, queryUrl, serverUrl],
+    [
+      "medicationRequests" + patientId + numOfSearchEntries.toString(),
+      queryUrl,
+      serverUrl,
+    ],
     () => fetchResourceFromEHR(axiosInstance, queryUrl),
     { enabled: patientId !== "" }
   );
@@ -46,8 +55,15 @@ function useFetchMedicationRequests(
     [bundle]
   );
 
+  const referencedMedications: Medication[] = useMemo(
+    () => getResources<Medication>(bundle, "Medication"),
+    [bundle]
+  );
+
   return {
     medicationRequests,
+    referencedMedications,
+    queryUrl,
     isInitialLoading,
     serverUrl,
   };

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Commonwealth Scientific and Industrial Research
+ * Copyright 2025 Commonwealth Scientific and Industrial Research
  * Organisation (CSIRO) ABN 41 687 119 230.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,14 +21,16 @@ import { useMemo } from "react";
 import { fetchResourceFromEHR } from "@/api/fhirApi.ts";
 import { getResources } from "@/utils/getResources.ts";
 import useFormsServerAxios from "@/hooks/useFormsServerAxios.ts";
+import { NUM_OF_QUESTIONNAIRES_TO_FETCH } from "@/globals.ts";
 
 interface useFetchQuestionnairesReturnParams {
   questionnaires: Questionnaire[];
+  queryUrl: string;
   isInitialLoading: boolean;
 }
 
 function useFetchQuestionnaires(): useFetchQuestionnairesReturnParams {
-  const numOfSearchEntries = 200;
+  const numOfSearchEntries = NUM_OF_QUESTIONNAIRES_TO_FETCH;
 
   const queryUrl = `/Questionnaire?_count=${numOfSearchEntries}&_sort=-date&`;
 
@@ -45,6 +47,7 @@ function useFetchQuestionnaires(): useFetchQuestionnairesReturnParams {
 
   return {
     questionnaires,
+    queryUrl,
     isInitialLoading,
   };
 }

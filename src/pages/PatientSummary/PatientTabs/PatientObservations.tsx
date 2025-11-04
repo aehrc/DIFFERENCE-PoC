@@ -1,3 +1,20 @@
+/*
+ * Copyright 2025 Commonwealth Scientific and Industrial Research
+ * Organisation (CSIRO) ABN 41 687 119 230.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { useContext, useMemo } from "react";
 import { nanoid } from "nanoid";
 import {
@@ -26,10 +43,16 @@ function PatientObservations(props: PatientObservationsProps) {
   const { linkedPatientIds } = useContext(PatientContext);
 
   const primaryData = useFetchObservations(patientId);
-  const linkedData = Object.entries(linkedPatientIds).map(([serverUrl, patientId]) => useFetchObservations(patientId, serverUrl));
+  const linkedData = Object.entries(linkedPatientIds).map(
+    ([serverUrl, patientId]) => useFetchObservations(patientId, serverUrl)
+  );
 
   const allData = [primaryData, ...linkedData];
-  const allObservations = allData.map(data => data.observations.map(entry => ({...entry, source: data.serverUrl}))).flat()
+  const allObservations = allData
+    .map((data) =>
+      data.observations.map((entry) => ({ ...entry, source: data.serverUrl }))
+    )
+    .flat();
 
   const observationTableData: ObservationTableData[] = useMemo(() => {
     return allObservations.map((entry) => {
@@ -73,7 +96,7 @@ function PatientObservations(props: PatientObservationsProps) {
                   "http://hl7.org/fhir/StructureDefinition/data-absent-reason" &&
                 !!ext.valueCode
             )?.valueCode ?? null,
-        source: entry.source
+        source: entry.source,
       };
     });
   }, [allObservations]);
@@ -92,7 +115,7 @@ function PatientObservations(props: PatientObservationsProps) {
         <SimpleTable
           data={observationTableData}
           columns={columns}
-          isLoading={allData.some(data => data.isInitialLoading)}
+          isLoading={allData.some((data) => data.isInitialLoading)}
           initialSorting={[{ id: "effectiveDateTime", desc: true }]}
         />
       </CardContent>

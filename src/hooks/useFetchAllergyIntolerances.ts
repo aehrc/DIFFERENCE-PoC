@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Commonwealth Scientific and Industrial Research
+ * Copyright 2025 Commonwealth Scientific and Industrial Research
  * Organisation (CSIRO) ABN 41 687 119 230.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,22 +21,30 @@ import { useMemo } from "react";
 import { fetchResourceFromEHR } from "@/api/fhirApi.ts";
 import { getResources } from "@/utils/getResources.ts";
 import useFhirServerAxios from "@/hooks/useFhirServerAxios.ts";
+import { NUM_OF_RESOURCES_TO_FETCH } from "@/globals.ts";
 
 interface useFetchAllergyIntolerancesReturnParams {
   allergyIntolerances: AllergyIntolerance[];
+  queryUrl: string;
   isInitialLoading: boolean;
   serverUrl: string;
 }
 
 function useFetchAllergyIntolerances(
   patientId: string,
-  serverUrl = "",
+  serverUrl = ""
 ): useFetchAllergyIntolerancesReturnParams {
-  const queryUrl = `/AllergyIntolerance?patient=${patientId}`;
+  const numOfSearchEntries = NUM_OF_RESOURCES_TO_FETCH;
+
+  const queryUrl = `/AllergyIntolerance?patient=${patientId}&_count=${numOfSearchEntries}&_sort=-date`;
 
   const axiosInstance = useFhirServerAxios(serverUrl);
   const { data: bundle, isInitialLoading } = useQuery<Bundle>(
-    ["allergyIntolerances" + patientId, queryUrl, serverUrl],
+    [
+      "allergyIntolerances" + patientId + numOfSearchEntries.toString(),
+      queryUrl,
+      serverUrl,
+    ],
     () => fetchResourceFromEHR(axiosInstance, queryUrl),
     { enabled: patientId !== "" }
   );
@@ -48,6 +56,7 @@ function useFetchAllergyIntolerances(
 
   return {
     allergyIntolerances,
+    queryUrl,
     isInitialLoading,
     serverUrl,
   };

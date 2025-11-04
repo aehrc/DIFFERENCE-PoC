@@ -1,3 +1,20 @@
+/*
+ * Copyright 2025 Commonwealth Scientific and Industrial Research
+ * Organisation (CSIRO) ABN 41 687 119 230.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import {
   Card,
   CardContent,
@@ -8,20 +25,19 @@ import {
 import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import FormLink from "@/components/FormLink.tsx";
-import {
-  getFhirServerBaseUrl,
-  getQuestionnaireServerBaseUrl,
-} from "@/utils/misc.ts";
 import useLauncherQuery from "@/hooks/useLauncherQuery.ts";
 import { Separator } from "@/components/ui/separator.tsx";
 import { useContext } from "react";
 import { QuestionnaireContext } from "@/contexts/QuestionnaireContext.tsx";
 import { FhirServerContext } from "@/contexts/FhirServerContext.tsx";
+import useConfig from "@/hooks/useConfig.ts";
+import useLaunchUrl from "@/hooks/useLaunchUrl.ts";
 import useSourceFhirServer from "@/hooks/useSourceFhirServer";
 
 function SettingsOverview() {
   const { serverUrl } = useSourceFhirServer();
-  const { launch } = useLauncherQuery();
+  const { launch, query } = useLauncherQuery();
+  const { formsServerUrl } = useConfig();
   const { selectedQuestionnaire } = useContext(QuestionnaireContext);
 
   let { fhirUser } = useContext(FhirServerContext)[serverUrl];
@@ -32,6 +48,9 @@ function SettingsOverview() {
     ? fhirUser?.startsWith("Practitioner")
     : false;
   fhirUser = fhirUser ? fhirUser.replace("Practitioner/", "") : "";
+
+  const launchUrl = useLaunchUrl(query, launch);
+  const clientAppBaseUrl = launchUrl.href.split("/launch")[0];
 
   return (
     <div className="grid gap-6">
@@ -47,7 +66,7 @@ function SettingsOverview() {
           <div className="grid gap-5">
             <div className="grid gap-2">
               <Label>Source FHIR Server URL</Label>
-              <Input disabled={true} value={getFhirServerBaseUrl()} />
+              <Input disabled={true} value={serverUrl} />
             </div>
 
             <div className="grid gap-2">
@@ -100,13 +119,13 @@ function SettingsOverview() {
                   path="/settings/app-launch"
                 />
               </div>
-              <Input disabled={true} value="https://smartforms.csiro.au" />
+              <Input disabled={true} value={clientAppBaseUrl} />
             </div>
 
             <Separator className="my-2" />
             <div className="grid gap-2">
               <Label>Questionnaire Repository Server URL</Label>
-              <Input disabled={true} value={getQuestionnaireServerBaseUrl()} />
+              <Input disabled={true} value={formsServerUrl} />
             </div>
             <div className="grid gap-2">
               <div className="flex justify-between items-center">

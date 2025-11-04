@@ -1,21 +1,43 @@
+/*
+ * Copyright 2025 Commonwealth Scientific and Industrial Research
+ * Organisation (CSIRO) ABN 41 687 119 230.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import useValidateCodeAndState from "@/hooks/useValidateCodeAndState.ts";
-import { OAUTH, OAUTH_SECONDARY } from "@/globals.ts";
-import { getFhirServerBaseUrl, getSecondaryFhirServerBaseUrl } from "@/utils/misc.ts";
 import { Button } from "@/components/ui/button.tsx";
 import useRequestTokenCode from "@/hooks/useRequestTokenCode.ts";
 import useAuthorize from "@/hooks/useAuthorize.ts";
 import useValidateAuthorization from "@/hooks/useValidateAuthorization";
+import useConfig from "@/hooks/useConfig.ts";
 
 const responseType = "code";
 
 function AuthCallback() {
   const { protocol, host } = window.location;
 
-  const baseUrl = sessionStorage.getItem("baseUrl") ?? getFhirServerBaseUrl();
+  const config = useConfig();
 
-  const { clientId, scope, grantType } = baseUrl === getSecondaryFhirServerBaseUrl() ? OAUTH_SECONDARY : OAUTH;
+  const baseUrl = sessionStorage.getItem("baseUrl") ?? config.fhirServerUrl;
 
-  const redirectUri = `${protocol}//${host}/authcallback`;
+  const { oAuthClientId, oAuthScope, oAuthGrantType } =
+    config.secondaryFhirServer &&
+    baseUrl === config.secondaryFhirServer.fhirServerUrl
+      ? config.secondaryFhirServer
+      : config;
+
+  const REDIRECT_URI = `${protocol}//${host}/authcallback`;
 
   // Check if code and state are present/valid
   const { code, stateIsValid } = useValidateCodeAndState(baseUrl);
@@ -26,9 +48,9 @@ function AuthCallback() {
   // Perform authorize() if code missing or state is invalid
   const { authorizeStatus } = useAuthorize({
     responseType,
-    clientId,
-    redirectUri,
-    scope,
+    clientId: oAuthClientId ?? "",
+    redirectUri: REDIRECT_URI,
+    scope: oAuthScope ?? "",
     aud: baseUrl,
     enabled: !authorizationError && !stateIsValid,
   });
@@ -36,10 +58,10 @@ function AuthCallback() {
   // Perform token() if authorisation is complete i.e. code and state are valid
   const { tokenStatus } = useRequestTokenCode({
     baseUrl,
-    grantType,
-    code,
-    redirectUri,
-    clientId,
+    grantType: oAuthGrantType ?? "",
+    code: code,
+    redirectUri: REDIRECT_URI,
+    clientId: oAuthClientId ?? "",
   });
 
   if (authorizeStatus === "error" || authorizationError) {
@@ -53,11 +75,8 @@ function AuthCallback() {
             We are unable to authorise your request
           </h1>
           <p className="mt-4 text-gray-500 dark:text-gray-400">
-            {
-              authorizationError ?? 
-              "It is likely that an authorisation endpoint is not available at the source server."
-            }
-            
+            {authorizationError ??
+              "It is likely that an authorisation endpoint is not available at the source server."}
           </p>
 
           <div className="flex items-center mt-6 gap-x-3">

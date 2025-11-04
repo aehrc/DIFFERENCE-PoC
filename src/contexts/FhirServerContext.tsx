@@ -1,8 +1,24 @@
+/*
+ * Copyright 2025 Commonwealth Scientific and Industrial Research
+ * Organisation (CSIRO) ABN 41 687 119 230.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { createContext, ReactNode, useState } from "react";
 import { IsValidIdToken, TokenResponse } from "@/utils/oauth.ts";
-import { getFhirServerBaseUrl, getSecondaryFhirServerBaseUrl } from "@/utils/misc.ts";
 import { jwtDecode } from "jwt-decode";
-import { AUTH_REQUIRED, AUTH_REQUIRED_SECONDARY } from "@/globals";
+import useConfig from "@/hooks/useConfig";
 
 interface FhirServerContextType {
   baseUrl: string;
@@ -16,19 +32,26 @@ interface FhirServerContextType {
   setTokenResponse: (accessTokenResponse: TokenResponse | null) => void;
 }
 
-export const FhirServerContext = createContext<Record<string, FhirServerContextType>>({});
+export const FhirServerContext = createContext<
+  Record<string, FhirServerContextType>
+>({});
 
 const FhirServerContextProvider = (props: { children: ReactNode }) => {
   const { children } = props;
 
-  const [tokenEndpoints, setTokenEndpoints] = useState<Record<string, string | null>>({});
-  const [tokenResponses, setTokenResponses] = useState<Record<string, TokenResponse | null>>(
-    retrieveStoredTokenResponse()
-  );
+  const [tokenEndpoints, setTokenEndpoints] = useState<
+    Record<string, string | null>
+  >({});
+  const [tokenResponses, setTokenResponses] = useState<
+    Record<string, TokenResponse | null>
+  >(retrieveStoredTokenResponse());
   const [fhirUsers, setFhirUsers] = useState<Record<string, string | null>>({});
 
-  const contextValue: Record<string, FhirServerContextType> = {}
-  const createContextValue = (baseUrl: string, authRequired: boolean): FhirServerContextType => ({
+  const contextValue: Record<string, FhirServerContextType> = {};
+  const createContextValue = (
+    baseUrl: string,
+    authRequired: boolean
+  ): FhirServerContextType => ({
     baseUrl,
     authRequired,
     tokenEndpoint: tokenEndpoints[baseUrl] ?? "",
@@ -36,14 +59,15 @@ const FhirServerContextProvider = (props: { children: ReactNode }) => {
     accessToken: tokenResponses[baseUrl]?.access_token ?? "",
     refreshToken: tokenResponses[baseUrl]?.refresh_token ?? "",
     fhirUser: fhirUsers[baseUrl],
-    setTokenEndpoint: (token_endpoint) => setTokenEndpoints(prevState => {
-      const endpoints = {...prevState};
-      endpoints[baseUrl] = token_endpoint;
-      return endpoints;
-    }),
+    setTokenEndpoint: (token_endpoint) =>
+      setTokenEndpoints((prevState) => {
+        const endpoints = { ...prevState };
+        endpoints[baseUrl] = token_endpoint;
+        return endpoints;
+      }),
     setTokenResponse: (accessTokenResponse) => {
-      setTokenResponses(prevState => {
-        const responses = {...prevState};
+      setTokenResponses((prevState) => {
+        const responses = { ...prevState };
         responses[baseUrl] = accessTokenResponse;
         return responses;
       });
@@ -65,17 +89,26 @@ const FhirServerContextProvider = (props: { children: ReactNode }) => {
           user = getResourceIdentifier(decodedIdToken.fhirUser);
         }
       }
-      setFhirUsers(prevState => {
-        const users = {...prevState};
+      setFhirUsers((prevState) => {
+        const users = { ...prevState };
         users[baseUrl] = user;
         return users;
       });
     },
-  })
+  });
 
-  contextValue[getFhirServerBaseUrl()] = createContextValue(getFhirServerBaseUrl(), AUTH_REQUIRED);
-  if (getSecondaryFhirServerBaseUrl()) {
-    contextValue[getSecondaryFhirServerBaseUrl()] = createContextValue(getSecondaryFhirServerBaseUrl(), AUTH_REQUIRED_SECONDARY);
+  const { fhirServerUrl, authRequired, secondaryFhirServer } = useConfig();
+
+  contextValue[fhirServerUrl] = createContextValue(fhirServerUrl, authRequired);
+  if (secondaryFhirServer) {
+    const {
+      fhirServerUrl: secondaryFhirServerUrl,
+      authRequired: secondaryAuthRequired,
+    } = secondaryFhirServer;
+    contextValue[secondaryFhirServerUrl] = createContextValue(
+      secondaryFhirServerUrl,
+      secondaryAuthRequired
+    );
   }
 
   return (

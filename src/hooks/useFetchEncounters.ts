@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Commonwealth Scientific and Industrial Research
+ * Copyright 2025 Commonwealth Scientific and Industrial Research
  * Organisation (CSIRO) ABN 41 687 119 230.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,25 +21,31 @@ import { useMemo } from "react";
 import { fetchResourceFromEHR } from "@/api/fhirApi.ts";
 import { getResources } from "@/utils/getResources.ts";
 import useFhirServerAxios from "@/hooks/useFhirServerAxios.ts";
+import { NUM_OF_RESOURCES_TO_FETCH } from "@/globals.ts";
 
 interface useFetchEncountersReturnParams {
   encounters: Encounter[];
+  queryUrl: string;
   isInitialLoading: boolean;
   serverUrl: string;
 }
 
 function useFetchEncounters(
   patientId: string,
-  serverUrl = "",
+  serverUrl = ""
 ): useFetchEncountersReturnParams {
-  const numOfSearchEntries = 500;
+  const numOfSearchEntries = NUM_OF_RESOURCES_TO_FETCH;
 
   // Note: numOfSearchEntries not used in Sparked reference server due to lack of support for _count
-  const queryUrl = `/Encounter?patient=${patientId}`;
+  const queryUrl = `/Encounter?patient=${patientId}&_count=${numOfSearchEntries}&_sort=-date`;
 
   const axiosInstance = useFhirServerAxios(serverUrl);
   const { data: bundle, isInitialLoading } = useQuery<Bundle>(
-    ["encounters" + patientId + numOfSearchEntries.toString(), queryUrl, serverUrl],
+    [
+      "encounters" + patientId + numOfSearchEntries.toString(),
+      queryUrl,
+      serverUrl,
+    ],
     () => fetchResourceFromEHR(axiosInstance, queryUrl),
     { enabled: patientId !== "" }
   );
@@ -51,6 +57,7 @@ function useFetchEncounters(
 
   return {
     encounters,
+    queryUrl,
     isInitialLoading,
     serverUrl,
   };

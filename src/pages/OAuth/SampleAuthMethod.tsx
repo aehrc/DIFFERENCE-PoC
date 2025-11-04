@@ -1,24 +1,39 @@
+/*
+ * Copyright 2025 Commonwealth Scientific and Industrial Research
+ * Organisation (CSIRO) ABN 41 687 119 230.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { Button } from "@/components/ui/button.tsx";
-import { OAUTH } from "@/globals.ts";
-import { getFhirServerBaseUrl } from "@/utils/misc.ts";
 import useSampleRequestTokenMethod from "@/hooks/useRequestTokenClientCredentials.ts";
+import useConfig from "@/hooks/useConfig.ts";
 
 // This is a sample implementation of a React functional component for your own OAuth2.0 methods, does not work out of the box
-
-const aud = getFhirServerBaseUrl();
-const { clientId, scope, grantType } = OAUTH;
-// Add other parameters here as required
 
 function SampleAuthMethod() {
   const { protocol, host } = window.location;
 
+  const { fhirServerUrl, oAuthGrantType, oAuthScope, oAuthClientId } =
+    useConfig();
+
   // Sample token request hook, does not work out of the box
   const { tokenStatus } = useSampleRequestTokenMethod({
-    baseUrl: aud,
-    grantType,
-    scope,
-    aud,
-    clientId,
+    baseUrl: fhirServerUrl,
+    grantType: oAuthGrantType ?? "",
+    scope: oAuthScope ?? "",
+    aud: fhirServerUrl,
+    clientId: oAuthClientId ?? "",
     // Add other parameters here as required
   });
 

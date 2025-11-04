@@ -1,3 +1,20 @@
+/*
+ * Copyright 2025 Commonwealth Scientific and Industrial Research
+ * Organisation (CSIRO) ABN 41 687 119 230.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { useContext, useMemo } from "react";
 import useFetchAllergyIntolerances from "@/hooks/useFetchAllergyIntolerances.ts";
 import {
@@ -25,11 +42,20 @@ function PatientAllergies(props: PatientAllergiesProps) {
   const { linkedPatientIds } = useContext(PatientContext);
 
   const primaryData = useFetchAllergyIntolerances(patientId);
-  const linkedData = Object.entries(linkedPatientIds).map(([serverUrl, patientId]) => useFetchAllergyIntolerances(patientId, serverUrl));
+  const linkedData = Object.entries(linkedPatientIds).map(
+    ([serverUrl, patientId]) =>
+      useFetchAllergyIntolerances(patientId, serverUrl)
+  );
 
   const allData = [primaryData, ...linkedData];
-  const allAllergyIntolerances = allData.map(data => data.allergyIntolerances.map(entry => ({...entry, source: data.serverUrl}))).flat()
-
+  const allAllergyIntolerances = allData
+    .map((data) =>
+      data.allergyIntolerances.map((entry) => ({
+        ...entry,
+        source: data.serverUrl,
+      }))
+    )
+    .flat();
 
   const allergyTableData: AllergyTableData[] = useMemo(() => {
     return allAllergyIntolerances.map((entry) => {
@@ -59,7 +85,7 @@ function PatientAllergies(props: PatientAllergiesProps) {
         category: entry.category?.[0] ?? "",
         criticality: entry.criticality ?? "",
         recordedDate: entry.recordedDate ? dayjs(entry.recordedDate) : null,
-        source: entry.source
+        source: entry.source,
       };
     });
   }, [allAllergyIntolerances]);
@@ -78,7 +104,7 @@ function PatientAllergies(props: PatientAllergiesProps) {
         <SimpleTable
           data={allergyTableData}
           columns={columns}
-          isLoading={allData.some(data => data.isInitialLoading)}
+          isLoading={allData.some((data) => data.isInitialLoading)}
           initialSorting={[{ id: "recordedDate", desc: true }]}
         />
       </CardContent>
