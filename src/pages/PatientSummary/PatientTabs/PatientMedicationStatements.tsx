@@ -90,6 +90,7 @@ function PatientMedicationStatements(props: PatientMedicationStatementsProps) {
             entry.reasonCode?.[0]?.coding?.[0].code ??
             "",
           effective: effective,
+          source: entry.source,
         };
       });
     }, [allMedicationStatements]);

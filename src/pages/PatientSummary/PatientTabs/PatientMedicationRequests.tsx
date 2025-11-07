@@ -82,6 +82,7 @@ function PatientMedicationRequests(props: PatientMedicationRequestsProps) {
                     "http://hl7.org/fhir/StructureDefinition/data-absent-reason" &&
                   !!ext.valueCode
               )?.valueCode ?? null,
+          source: entry.source,
         };
       });
     }, [allMedicationRequests]);

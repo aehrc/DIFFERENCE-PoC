@@ -75,6 +75,7 @@ function PatientImmunizations(props: Props) {
         occurrenceDate: entry.occurrenceDateTime
           ? dayjs(entry.occurrenceDateTime)
           : null,
+        source: entry.source,
       };
     });
   }, [allImmunizations]);
