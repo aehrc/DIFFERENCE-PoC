@@ -24,7 +24,11 @@ function useSmartConfiguration(baseUrl: string): SmartConfiguration | null {
     [baseUrl, "smart-configuration"],
     () =>
       axios
-        .get(baseUrl + "/.well-known/smart-configuration")
+        .get(baseUrl + "/.well-known/smart-configuration", {
+          headers: {
+            Accept: "application/json",
+          },
+        })
         .then((res) => res.data)
   );
 
