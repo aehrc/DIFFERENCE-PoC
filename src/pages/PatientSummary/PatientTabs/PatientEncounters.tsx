@@ -56,7 +56,7 @@ function PatientEncounters(props: PatientEncountersProps) {
     return allEncounters.map((entry) => ({
       id: entry.id ?? nanoid(),
       type: entry.type?.[0].coding?.[0].display ?? entry.type?.[0].text ?? "",
-      class: entry.class?.display ?? entry.class.code ?? "",
+      class: entry.class?.display ?? entry.class?.code ?? "",
       status: entry.status ?? "",
       period: entry.period ?? null,
       source: entry.source,
