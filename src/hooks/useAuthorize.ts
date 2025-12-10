@@ -1,5 +1,6 @@
 import useSmartConfiguration from "@/hooks/useSmartConfiguration.ts";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import pkceChallenge from "pkce-challenge";
 
 interface useAuthorizeProps {
   responseType: string;
@@ -38,9 +39,20 @@ export function useAuthorize(props: useAuthorizeProps): {
     return "";
   }, [smartConfiguration]);
 
+  const [pkceCodeChallenge, setPkceCodeChallenge] = useState<string>();
+
+  useEffect(() => {
+    if (enabled) {
+      pkceChallenge().then((result) => {
+        setPkceCodeChallenge(result.code_challenge);
+        sessionStorage.setItem("code_verifier", result.code_verifier);
+      });
+    }
+  }, []);
+
   // Create authorize request
   useEffect(() => {
-    if (!enabled) {
+    if (!enabled || !pkceCodeChallenge) {
       return;
     }
 
@@ -70,6 +82,8 @@ export function useAuthorize(props: useAuthorizeProps): {
           redirect_uri: redirectUri,
           aud: aud,
           state: state,
+          code_challenge: pkceCodeChallenge,
+          code_challenge_method: "S256",
         }) +
         "&scope=" +
         encodedScope;

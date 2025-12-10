@@ -18,7 +18,8 @@ export function useRequestTokenCode(props: useRequestTokenProps): {
 } {
   const { baseUrl, grantType, code, redirectUri, clientId } = props;
 
-  const { setTokenEndpoint, setTokenResponse } = useContext(FhirServerContext)[baseUrl];
+  const { setTokenEndpoint, setTokenResponse } =
+    useContext(FhirServerContext)[baseUrl];
 
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
@@ -53,6 +54,7 @@ export function useRequestTokenCode(props: useRequestTokenProps): {
           code: code,
           redirect_uri: redirectUri,
           client_id: clientId,
+          code_verifier: sessionStorage.getItem("code_verifier") ?? "",
         }),
       })
         .then(async (res) => {
