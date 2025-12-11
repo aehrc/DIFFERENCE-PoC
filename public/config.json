@@ -2,18 +2,18 @@
   "fhirServerUrl": "https://gw.interop.community/difference/data",
   "authRequired": true,
   "oAuthGrantType": "authorization_code",
-  "oAuthScope": "openid profile user/*.read",
-  "oAuthClientId": "4cbe80ab-0b21-4807-8525-37f708f2bafc",
+  "oAuthScope": "openid profile user/*.read user/Patient.write",
+  "oAuthClientId": "dca91f97-6143-40a2-9d9f-e9736e481913",
   "secondaryFhirServer": {
     "fhirServerUrl": "https://gw.interop.community/differenceb/data",
     "authRequired": true,
     "oAuthGrantType": "authorization_code",
     "oAuthScope": "openid profile user/*.read",
-    "oAuthClientId": "75dfc873-4075-4b97-924d-44f5b492af3d"
+    "oAuthClientId": "10739db7-e804-40da-bf80-801a980670c9"
   },
   "branding": {
-    "logoUrl": "/branding/logo.svg",
-    "bannerUrl": "/branding/banner.svg",
+    "logoUrl": "/branding/.local/logo.svg",
+    "bannerUrl": "/branding/.local/banner.svg",
     "stylesheetUrl": "./styles/bioc_branding.css"
   },
   "launchParamConfigType": "proxy",
