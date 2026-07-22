@@ -1,0 +1,38 @@
+# Public entrypoints for the stack.
+#   :{$HTTP_PORT}  plain HTTP — 308-redirects everything to the HTTPS origin.
+#   :{$HTTPS_PORT} canonical HTTPS — terminates TLS with the stack's self-signed
+#                  cert (SAN includes the public host) and path-routes:
+#     /auth/*  -> Keycloak     (http upstream; Caddy sets X-Forwarded-Proto=https)
+#     /fhir/*  -> FHIR Gateway (https upstream, prefix preserved)
+#     /*       -> Vite frontend (https upstream — vite.config enforces HTTPS)
+{
+	auto_https off
+	admin off
+}
+
+# HTTP -> HTTPS upgrade (avoids "Client sent an HTTP request to an HTTPS server")
+http://:{$HTTP_PORT} {
+	redir https://{$SELF_HOST}:{$HTTPS_PORT}{uri} 308
+}
+
+https://:{$HTTPS_PORT} {
+	tls /certs/server.crt /certs/server.key
+
+	handle /fhir/* {
+		reverse_proxy https://fhir-gateway:8080 {
+			transport http {
+				tls_insecure_skip_verify
+			}
+		}
+	}
+	handle /auth/* {
+		reverse_proxy keycloak:8080
+	}
+	handle {
+		reverse_proxy https://frontend:5173 {
+			transport http {
+				tls_insecure_skip_verify
+			}
+		}
+	}
+}

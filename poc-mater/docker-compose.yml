@@ -1,0 +1,217 @@
+# DIFFERENCE POC — Mater stack (self-contained).
+# Single secured FHIR stack (HAPI + FHIR Info Gateway + Keycloak) PLUS the Vite
+# frontend. The frontend's PRIMARY server is this stack's gateway; its SECONDARY
+# server is the OTHER org (IUIH). All browser-facing URLs come from .env as
+# PUBLIC endpoints — see .env and README.md.
+
+services:
+  hapi-server:
+    build:
+      context: ./hapi_health
+    privileged: true
+    depends_on:
+      hapi-fhir-postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://hapi-fhir-postgres:5432/hapi
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_DATASOURCE_DRIVERCLASSNAME: org.postgresql.Driver
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgresDialect
+    ports:
+      - "${HAPI_PORT}:8080"    # unsecured HAPI, host-only, for debugging
+    healthcheck:
+      test: ["CMD", "java", "-cp", "/app", "HealthCheck"]
+      start_period: 30s
+      interval: 10s
+      retries: 8
+      timeout: 5s
+    networks:
+      - stack
+
+  hapi-fhir-postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: "hapi"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "admin"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d hapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - hapi-fhir-postgres:/var/lib/postgresql/data
+    networks:
+      - stack
+
+  keycloak:
+    image: quay.io/alvearie/smart-keycloak:latest
+    privileged: true
+    ports:
+      - "${KC_PORT}:8080"
+      - "${KCS_PORT}:8443"
+    environment:
+      - KEYCLOAK_USER
+      - KEYCLOAK_PASSWORD
+      - SPRING_CONFIG_LOCATION=/config/application.yaml
+      # Legacy (Wildfly) Keycloak: derive issuer/endpoints from the reverse
+      # proxy's forwarded Host/Proto headers, so the public issuer is identical
+      # for the browser and for the gateway's server-side JWKS fetch.
+      - PROXY_ADDRESS_FORWARDING=true
+    volumes:
+      - ./config:/config
+      - ./certs:/certs
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/auth/realms/master"]
+      start_period: 35s
+      interval: 10s
+      retries: 5
+      timeout: 10s
+    networks:
+      - stack
+
+  # Alvearie SMART realm bootstrap (leaves a baseline SMART realm in place).
+  smart-config:
+    image: alvearie/keycloak-config
+    privileged: true
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    environment:
+      - KEYCLOAK_BASE_URL=http://keycloak:8080/auth
+      - KEYCLOAK_USER
+      - KEYCLOAK_PASSWORD
+      - KEYCLOAK_REALM=${SMART_REALM:-dummy-smart}
+    networks:
+      - stack
+
+  proxy-config:
+    image: us-docker.pkg.dev/fhir-proxy-build/stable/keycloak-config:latest
+    privileged: true
+    depends_on:
+      smart-config:
+        condition: service_completed_successfully
+    environment:
+      - KEYCLOAK_BASE_URL=http://keycloak:8080/auth
+      - KEYCLOAK_USER
+      - KEYCLOAK_PASSWORD
+      - TEST_REALM
+      - TEST_USER
+      - TEST_PASS
+      - SMART_REALM
+    networks:
+      - stack
+
+  # DIFFERENCE POC realm + viewer client registration (kcadm route).
+  # Registers CLIENT_ID in POC_REALM with redirect URIs for BOTH frontends
+  # (this stack + the other org) to enable cross-org secondary auth.
+  keycloak-init:
+    image: quay.io/keycloak/keycloak:24.0
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "/init/register-client.sh"]
+    environment:
+      - KC_INTERNAL_URL=http://keycloak:8080/auth
+      - KEYCLOAK_USER
+      - KEYCLOAK_PASSWORD
+      - POC_REALM
+      - CLIENT_ID
+      - POC_USER
+      - POC_PASS
+      - SELF_FRONTEND_URL
+      - OTHER_FRONTEND_URL
+    volumes:
+      - ./keycloak-init:/init
+    networks:
+      - stack
+
+  # Public entrypoint. Its network alias = SELF_HOST, so containers (the
+  # gateway) resolve the public hostname to this proxy; the browser resolves it
+  # via /etc/hosts. Both then reach Keycloak/gateway on the same public URL.
+  proxy:
+    image: caddy:2-alpine
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    environment:
+      - HTTP_PORT
+      - HTTPS_PORT
+      - SELF_HOST
+    ports:
+      - "${HTTP_PORT}:${HTTP_PORT}"     # plain HTTP -> redirects to HTTPS
+      - "${HTTPS_PORT}:${HTTPS_PORT}"   # canonical HTTPS
+    volumes:
+      - ./proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./certs:/certs:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "--no-check-certificate", "https://localhost:${HTTPS_PORT}/auth/realms/master"]
+      start_period: 20s
+      interval: 10s
+      retries: 5
+      timeout: 10s
+    networks:
+      stack:
+        aliases:
+          - ${SELF_HOST}
+
+  fhir-gateway:
+    image: us-docker.pkg.dev/fhir-proxy-build/stable/fhir-gateway@sha256:29906c4e2de858883cf7a50b486a79bb4aebfa39d2cc4e329ee7f134301af534
+    privileged: true
+    depends_on:
+      hapi-server:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      proxy:
+        condition: service_healthy
+    environment:
+      # Token issuer is the PUBLIC POC-realm issuer (must match the browser's
+      # token `iss`). Resolved to the proxy via its network alias (${SELF_HOST}),
+      # so this server-side JWKS fetch and the browser hit the same issuer.
+      - TOKEN_ISSUER=${SELF_KC_URL}/realms/${POC_REALM}
+      - PROXY_TO=http://hapi-server:8080/fhir
+      - BACKEND_TYPE=HAPI
+      - RUN_MODE=DEV
+      - ACCESS_CHECKER=list
+      - SPRING_CONFIG_LOCATION=/config/application.yaml
+      - JAVA_OPTS=-Djavax.net.ssl.keyStore=/certs/keystore.jks -Djavax.net.ssl.keyStorePassword=changeit -Djavax.net.ssl.trustStore=/certs/truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12
+      - PROXY_PORT=8080
+    ports:
+      - "${FHIR_PORT}:8080"    # FHIR Info Gateway (public FHIR endpoint)
+    volumes:
+      - ./config:/config
+      - ./certs:/certs
+    entrypoint: ["/bin/sh", "-c", "java $$JAVA_OPTS -jar /fhir-gateway-exec.jar --server.port=$$PROXY_PORT"]
+    networks:
+      - stack
+
+  # Vite frontend (shared image, built from repo root). Config is supplied at
+  # DEPLOY time, not baked: config.json (this stack's FHIR servers/OAuth/branding)
+  # and the branding assets are mounted into the served /public tree, and the
+  # TLS key/cert vite.config expects are mounted into /app/.local. No VITE_ env,
+  # no per-stack rebuild.
+  frontend:
+    build:
+      context: ..
+      dockerfile: poc-mater/frontend/Dockerfile
+    depends_on:
+      - fhir-gateway
+    ports:
+      - "${FRONTEND_PORT}:5173"
+    volumes:
+      - ./config.json:/app/public/config.json:ro
+      - ./branding:/app/public/branding/.local:ro
+      - ./certs/server.key:/app/.local/key.pem:ro
+      - ./certs/server.crt:/app/.local/cert.pem:ro
+    networks:
+      - stack
+
+networks:
+  stack:
+    driver: bridge
+
+volumes:
+  hapi-fhir-postgres:

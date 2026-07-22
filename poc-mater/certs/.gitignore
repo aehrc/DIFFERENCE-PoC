@@ -1,0 +1,5 @@
+# create_certs.sh intermediates (regenerated); keep only runtime artifacts:
+# server.crt, server.key, keystore.jks, truststore.p12
+server.csr
+keystore.p12
+san.cnf

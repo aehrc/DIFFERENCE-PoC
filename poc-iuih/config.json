@@ -1,0 +1,39 @@
+{
+  "fhirServerUrl": "https://example.iuih.org:8443/fhir",
+  "authRequired": true,
+  "launchParamConfigType": "default",
+  "oAuthGrantType": "authorization_code",
+  "oAuthScope": "openid profile user/*.read",
+  "oAuthClientId": "difference-poc-viewer",
+  "secondaryFhirServer": {
+    "fhirServerUrl": "https://example.mater.org:8543/fhir",
+    "authRequired": true,
+    "oAuthGrantType": "authorization_code",
+    "oAuthScope": "openid profile user/*.read",
+    "oAuthClientId": "difference-poc-viewer"
+  },
+  "branding": {
+    "logoUrl": "/branding/.local/logo.svg",
+    "bannerUrl": "/branding/.local/banner.svg",
+    "stylesheetUrl": "./styles/bioc_branding.css"
+  },
+  "formsServerUrl": "https://smartforms.csiro.au/api/fhir",
+  "appList": [
+    {
+      "appName": "Health Check Assessment",
+      "launchUrl": "https://smartforms.csiro.au/launch",
+      "clientId": "a57d90e3-5f69-4b92-aa2e-2992180863c1",
+      "scope": "launch openid fhirUser online_access patient/Condition.rs patient/Observation.rs patient/Encounter.rs patient/QuestionnaireResponse.cruds patient/Patient.rs",
+      "redirectUris": "https://smartforms.csiro.au",
+      "isEmbeddedView": false
+    }
+  ],
+  "defaultApp": {
+    "appName": "Health Check Assessment",
+    "launchUrl": "https://smartforms.csiro.au/launch",
+    "clientId": "a57d90e3-5f69-4b92-aa2e-2992180863c1",
+    "scope": "launch openid fhirUser online_access patient/Condition.rs patient/Observation.rs patient/Encounter.rs patient/QuestionnaireResponse.cruds patient/Patient.rs",
+    "redirectUris": "https://smartforms.csiro.au",
+    "isEmbeddedView": false
+  }
+}

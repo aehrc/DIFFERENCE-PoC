@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+.git
+poc-iuih
+poc-mater
+docker
+*.local
+.env
+.DS_Store
