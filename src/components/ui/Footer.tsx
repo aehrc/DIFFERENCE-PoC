@@ -17,11 +17,28 @@
 
 import csiroLogo from "../../img/csiro-logo.png";
 import { Separator } from "@/components/ui/separator.tsx";
+import useConfig from "@/hooks/useConfig";
 
 function Footer() {
+  const { branding } = useConfig();
+  const { operatorLogoUrl, operatorName } = branding || {};
+
   return (
     <footer className="pt-5 pb-2.5 m-auto">
       <div className="flex items-center gap-3.5">
+        {operatorLogoUrl ? (
+          <>
+            <div className="flex items-center gap-x-2">
+              <div className="text-xs text-muted-foreground">Operated by</div>
+              <img
+                src={operatorLogoUrl}
+                alt={operatorName ? `${operatorName} logo` : "Operator logo"}
+                className="h-7 w-auto"
+              />
+            </div>
+            <Separator orientation="vertical" className="h-6" />
+          </>
+        ) : null}
         <div className="flex items-center gap-x-2">
           <div className="text-xs text-muted-foreground">Built by</div>
           <img src={csiroLogo} alt="CSIRO Logo" className="h-7 w-7" />

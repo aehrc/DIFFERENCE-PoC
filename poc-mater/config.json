@@ -15,6 +15,8 @@
   "branding": {
     "logoUrl": "/branding/.local/logo.svg",
     "bannerUrl": "/branding/.local/banner.svg",
+    "operatorLogoUrl": "/branding/.local/logo-mater.svg",
+    "operatorName": "Mater",
     "stylesheetUrl": "./styles/bioc_branding.css"
   },
   "formsServerUrl": "https://smartforms.csiro.au/api/fhir",

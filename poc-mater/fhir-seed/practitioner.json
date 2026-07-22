@@ -1,0 +1,11 @@
+{
+  "resourceType": "Practitioner",
+  "id": "poc",
+  "identifier": [
+    { "system": "urn:difference:poc", "value": "poc" }
+  ],
+  "active": true,
+  "name": [
+    { "use": "official", "family": "Practitioner", "given": ["POC"], "text": "POC Practitioner" }
+  ]
+}

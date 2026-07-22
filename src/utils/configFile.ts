@@ -49,6 +49,9 @@ export interface ConfigFile extends OAuthConfig {
     // Store assets in /public and provide relative paths
     logoUrl?: string | null;
     bannerUrl?: string | null;
+    // Operator (deploying org) logo shown in the footer as "Operated by <logo>"
+    operatorLogoUrl?: string | null;
+    operatorName?: string | null;
     // Store in /src/styles and provide relative paths
     stylesheetUrl?: string | null;
   };

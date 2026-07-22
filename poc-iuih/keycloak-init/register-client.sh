@@ -76,13 +76,45 @@ for scope in $SMART_SCOPES; do
   fi
 done
 
+# SMART fhirUser claim: emit `fhirUser` in the id_token from a user attribute so
+# the launcher defaults the User launch context to the authenticated user. Maps
+# user attribute `fhirUser` -> claim `fhirUser` (String) on the viewer client.
+FHIR_USER_VALUE="${FHIR_USER_VALUE:-Practitioner/poc}"
+if [ -n "$CID" ]; then
+  MID=$("$KCADM" get "clients/${CID}/protocol-mappers/models" -r "$POC_REALM" --fields id,name --format csv --noquotes 2>/dev/null \
+        | { while IFS=, read -r _id _name; do [ "$_name" = "fhirUser" ] && { printf '%s' "$_id"; break; }; done; } || true)
+  if [ -z "$MID" ]; then
+    echo "[keycloak-init] adding fhirUser protocol mapper to ${CLIENT_ID}"
+    "$KCADM" create "clients/${CID}/protocol-mappers/models" -r "$POC_REALM" \
+      -s name=fhirUser \
+      -s protocol=openid-connect \
+      -s protocolMapper=oidc-usermodel-attribute-mapper \
+      -s 'config."user.attribute"=fhirUser' \
+      -s 'config."claim.name"=fhirUser' \
+      -s 'config."jsonType.label"=String' \
+      -s 'config."id.token.claim"=true' \
+      -s 'config."access.token.claim"=true' \
+      -s 'config."userinfo.token.claim"=true' >/dev/null \
+      && echo "[keycloak-init]   fhirUser mapper added" || echo "[keycloak-init]   fhirUser mapper add failed"
+  else
+    echo "[keycloak-init] fhirUser protocol mapper already present"
+  fi
+fi
+
 echo "[keycloak-init] ensuring test user ${POC_USER}"
 "$KCADM" create users -r "$POC_REALM" -s username="$POC_USER" -s enabled=true 2>/dev/null \
   || echo "[keycloak-init] user ${POC_USER} already exists"
 "$KCADM" set-password -r "$POC_REALM" --username "$POC_USER" --new-password "$POC_PASS"
 
+# Link the test user to the seeded Practitioner (drives the fhirUser claim).
+UID_POC=$("$KCADM" get users -r "$POC_REALM" -q username="$POC_USER" --fields id --format csv --noquotes 2>/dev/null | head -n1 || true)
+if [ -n "$UID_POC" ]; then
+  "$KCADM" update "users/${UID_POC}" -r "$POC_REALM" -s "attributes.fhirUser=[\"${FHIR_USER_VALUE}\"]" \
+    && echo "[keycloak-init] set ${POC_USER} fhirUser=${FHIR_USER_VALUE}"
+fi
+
 echo "[keycloak-init] done."
 echo "[keycloak-init]   realm:      ${POC_REALM}"
 echo "[keycloak-init]   client:     ${CLIENT_ID}"
 echo "[keycloak-init]   redirects:  ${REDIRECT_SELF} , ${REDIRECT_OTHER}"
-echo "[keycloak-init]   test login: ${POC_USER} / ${POC_PASS}"
+echo "[keycloak-init]   test login: ${POC_USER} / ${POC_PASS}  (fhirUser=${FHIR_USER_VALUE})"

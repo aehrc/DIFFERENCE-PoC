@@ -87,9 +87,9 @@ both the IUIH and Mater redirect URIs and the `user/*.read` scope.
 
 - **Self-signed certs** — browsers and tools must accept them (`curl -k`). Certs
   are committed for out-of-box runs; regenerate for a real deploy.
-- **Gateway `ACCESS_CHECKER=list`** expects per-user List-based permissions,
-  wired by the bundled `proxy-config` for the legacy `test` realm, **not** for
-  `DIFFERENCE_POC`. Authenticated FHIR reads by the `poc` user may 403 until an
-  access List is provisioned (or the checker is relaxed for the demo).
+- **`ACCESS_CHECKER=permissive`** — the gateway authenticates the token (valid
+  issuer/signature required) but does **no** per-user access control; any
+  authenticated user can read everything. This suits the launcher's user-level
+  admin queries for the POC; a real deploy needs a proper access model.
 - **kcadm/Keycloak version** — `keycloak-init` uses `keycloak:24.0` kcadm against
   the alvearie Wildfly image's `/auth` base path; re-verify if you bump either.
