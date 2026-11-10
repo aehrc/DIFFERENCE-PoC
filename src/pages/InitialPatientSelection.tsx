@@ -13,7 +13,7 @@ function InitialPatientSelection() {
         </Header>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0">
           <div className="mx-auto grid w-full max-w-6xl gap-4">
-            <PatientSettings showEncounterContext={false} />
+            <PatientSettings />
           </div>
         </main>
       </div>

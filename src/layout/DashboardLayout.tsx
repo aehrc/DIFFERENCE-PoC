@@ -20,8 +20,6 @@ import SideBar from "@/layout/Sidebar/SideBar.tsx";
 import SideBarMobile from "@/layout/SidebarMobile/SideBarMobile.tsx";
 import PatientNavProfile from "@/layout/NavProfiles/PatientNavProfile.tsx";
 import UserNavProfile from "@/layout/NavProfiles/UserNavProfile.tsx";
-import EncounterNavProfile from "@/layout/NavProfiles/EncounterNavProfile.tsx";
-import FhirContextNavProfile from "@/layout/NavProfiles/FhirContextNavProfile.tsx";
 import Header from "@/components/Header.tsx";
 import CopyButton from "@/components/CopyButton.tsx";
 import Footer from "@/components/ui/Footer.tsx";
@@ -38,13 +36,11 @@ function DashboardLayout() {
           <span className=" -mr-2">
             <CopyButton
               link={window.location.href}
-              title="Copy EHR link with context"
+              title="Copy link to this view"
             />
           </span>
           <PatientNavProfile />
           <UserNavProfile />
-          <EncounterNavProfile />
-          <FhirContextNavProfile />
         </Header>
         <Outlet />
       </div>
