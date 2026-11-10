@@ -26,6 +26,7 @@ import type {
 import type {
   Patient as R4Patient,
   Practitioner as R4Practitioner,
+  RelatedPerson as R4RelatedPerson,
 } from "fhir/r4";
 
 import dayjs from "dayjs";
@@ -50,7 +51,8 @@ type FHIRPerson =
   | R4Patient
   | R2Practitioner
   | R3Practitioner
-  | R4Practitioner;
+  | R4Practitioner
+  | R4RelatedPerson;
 
 export function formatAge(patient: R2Patient | R3Patient | R4Patient): string {
   let dob = patient.birthDate;

@@ -31,6 +31,7 @@ import PatientImmunizations from "@/pages/PatientSummary/PatientTabs/PatientImmu
 import PatientEncounters from "@/pages/PatientSummary/PatientTabs/PatientEncounters.tsx";
 import PatientObservations from "@/pages/PatientSummary/PatientTabs/PatientObservations.tsx";
 import PatientMedicationStatements from "@/pages/PatientSummary/PatientTabs/PatientMedicationStatements.tsx";
+import PatientServiceRequests from "@/pages/PatientSummary/PatientTabs/PatientServiceRequests.tsx";
 import { PatientContext } from "@/contexts/PatientContext";
 import { useContext } from "react";
 
@@ -69,6 +70,9 @@ function PatientDetails() {
             <TabsTrigger value="observations" disabled={!patient}>
               Observations
             </TabsTrigger>
+            <TabsTrigger value="serviceRequests" disabled={!patient}>
+              Service Requests
+            </TabsTrigger>
           </TabsList>
         </div>
         {patient && patient.id ? (
@@ -99,6 +103,9 @@ function PatientDetails() {
             </TabsContent>
             <TabsContent value="observations">
               <PatientObservations patientId={patient.id} />
+            </TabsContent>
+            <TabsContent value="serviceRequests">
+              <PatientServiceRequests patientId={patient.id} />
             </TabsContent>
           </>
         ) : (
