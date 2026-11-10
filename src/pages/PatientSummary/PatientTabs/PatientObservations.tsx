@@ -19,6 +19,8 @@ import { useContext, useMemo } from "react";
 import { nanoid } from "nanoid";
 import {
   createObservationTableColumns,
+  getObservationInterpretations,
+  getObservationReferenceRanges,
   getObservationValueData,
   ObservationTableData,
 } from "@/utils/patientDetails.tsx";
@@ -88,6 +90,8 @@ function PatientObservations(props: PatientObservationsProps) {
         status: entry.status ?? "",
         category: categoryText,
         valueData: getObservationValueData(entry),
+        interpretation: getObservationInterpretations(entry),
+        referenceRange: getObservationReferenceRanges(entry),
         effectiveDateTime: entry.effectiveDateTime
           ? dayjs(entry.effectiveDateTime)
           : entry._effectiveDateTime?.extension?.find(

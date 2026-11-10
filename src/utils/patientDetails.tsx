@@ -18,7 +18,14 @@
 import dayjs, { Dayjs } from "dayjs";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge.tsx";
-import { Observation, ObservationComponent, Period } from "fhir/r4";
+import {
+  CodeableConcept,
+  Observation,
+  ObservationComponent,
+  ObservationReferenceRange,
+  Period,
+  Quantity,
+} from "fhir/r4";
 import { Workflow } from "lucide-react";
 import {
   Tooltip,
@@ -202,6 +209,9 @@ export interface MedicationRequestTableData extends TableData {
   id: string;
   medication: MedicationLabel;
   status: string;
+  intent: string;
+  dosage: string;
+  reason: string[];
   authoredOn: Dayjs | string | null;
 }
 
@@ -254,16 +264,10 @@ export function createMedicationRequestTableColumns(): ColumnDef<MedicationReque
         </div>
       ),
     },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) =>
-        row.getValue("status") ? (
-          <Badge variant="outline">{row.getValue("status")}</Badge>
-        ) : (
-          "-"
-        ),
-    },
+    createBadgeColumn("intent", "Intent"),
+    createTextColumn("dosage", "Dosage"),
+    createTextListColumn("reason", "Reason"),
+    createBadgeColumn("status", "Status"),
     {
       accessorKey: "authoredOn",
       header: "Authored On",
@@ -361,30 +365,8 @@ export function createMedicationStatementTableColumns(): ColumnDef<MedicationSta
           "-"
         ),
     },
-    {
-      accessorKey: "dosage",
-      header: "Dosage",
-      cell: ({ row }) =>
-        row.getValue("dosage") ? (
-          <div className="flex">
-            <div>{row.getValue("dosage") ?? "-"}</div>
-          </div>
-        ) : (
-          "-"
-        ),
-    },
-    {
-      accessorKey: "reasonCode",
-      header: "Reason Code",
-      cell: ({ row }) =>
-        row.getValue("reasonCode") ? (
-          <div className="flex">
-            <div>{row.getValue("reasonCode") ?? "-"}</div>
-          </div>
-        ) : (
-          "-"
-        ),
-    },
+    createTextColumn("dosage", "Dosage"),
+    createTextColumn("reasonCode", "Reason Code"),
     {
       accessorKey: "effective",
       header: "Effective",
@@ -633,7 +615,14 @@ export interface ObservationTableData extends TableData {
   status: string;
   category: string;
   valueData: string | number | (string | number)[];
+  interpretation: ObservationInterpretation[];
+  referenceRange: string[];
   effectiveDateTime: Dayjs | string | null;
+}
+
+export interface ObservationInterpretation {
+  code: string;
+  label: string;
 }
 
 export function createObservationTableColumns(): ColumnDef<ObservationTableData>[] {
@@ -727,6 +716,33 @@ export function createObservationTableColumns(): ColumnDef<ObservationTableData>
         );
       },
     },
+    {
+      accessorKey: "interpretation",
+      header: "Interpretation",
+      enableSorting: false,
+      cell: ({ row }) => {
+        const interpretations = row.original.interpretation;
+        if (interpretations.length === 0) return "-";
+        return (
+          <div className="flex flex-wrap gap-1">
+            {interpretations.map(({ code, label }) => (
+              <Badge
+                key={code + label}
+                variant={
+                  ABNORMAL_INTERPRETATION_CODES.has(code)
+                    ? "destructive"
+                    : "outline"
+                }
+                title={label}
+              >
+                {code || label}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    createTextListColumn("referenceRange", "Reference Range"),
     {
       accessorKey: "effectiveDateTime",
       header: "Effective Date Time",
@@ -861,6 +877,192 @@ export function getObservationOrComponentValue(
   }
 
   return null;
+}
+
+// v3-ObservationInterpretation codes that flag a result as outside normal
+const ABNORMAL_INTERPRETATION_CODES = new Set([
+  "A",
+  "AA",
+  "H",
+  "HH",
+  "HU",
+  "L",
+  "LL",
+  "LU",
+  ">",
+  "<",
+  "POS",
+  "DET",
+  "R",
+  "W",
+]);
+
+export function getObservationInterpretations(
+  observation: Observation
+): ObservationInterpretation[] {
+  return (observation.interpretation ?? []).map((concept) => {
+    const coding = concept.coding?.[0];
+    return {
+      code: coding?.code ?? "",
+      label: coding?.display ?? concept.text ?? coding?.code ?? "",
+    };
+  });
+}
+
+function quantityText(quantity: Quantity | undefined): string {
+  if (quantity?.value === undefined) return "";
+  return [quantity.comparator, quantity.value, quantity.unit]
+    .filter((part) => part !== undefined && part !== "")
+    .join(" ");
+}
+
+export function getObservationReferenceRanges(
+  observation: Observation
+): string[] {
+  return (observation.referenceRange ?? [])
+    .map((range: ObservationReferenceRange) => {
+      const low = quantityText(range.low);
+      const high = quantityText(range.high);
+      let bounds = "";
+      if (low && high) {
+        // Avoid repeating the unit when both bounds share it
+        const lowValue =
+          range.low?.unit && range.low.unit === range.high?.unit
+            ? [range.low.comparator, range.low.value].filter(Boolean).join(" ")
+            : low;
+        bounds = `${lowValue} – ${high}`;
+      } else if (low) {
+        bounds = `≥ ${low}`;
+      } else if (high) {
+        bounds = `≤ ${high}`;
+      }
+
+      const text = range.text?.trim() ?? "";
+      if (bounds && text && text !== bounds) return `${bounds} (${text})`;
+      return bounds || text;
+    })
+    .filter(Boolean);
+}
+
+// ServiceRequest functions and types
+export interface ServiceRequestTableData extends TableData {
+  id: string;
+  request: string;
+  category: string;
+  status: string;
+  performer: string;
+  requester: string;
+  date: Dayjs | null;
+}
+
+export function createServiceRequestTableColumns(): ColumnDef<ServiceRequestTableData>[] {
+  return [
+    createSourceServerColumn(),
+    {
+      accessorKey: "request",
+      header: "Request",
+      cell: ({ row }) => (
+        <div className="flex min-w-[280px]">
+          <div>{row.getValue("request") || "-"}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "id",
+      header: "ID",
+      cell: ({ row }) => (
+        <div className="flex max-w-64">
+          <div className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs">
+            {row.getValue("id") ?? "-"}
+          </div>
+        </div>
+      ),
+    },
+    createTextColumn("category", "Category"),
+    createBadgeColumn("status", "Status"),
+    createTextColumn("performer", "Performer"),
+    createTextColumn("requester", "Requester"),
+    {
+      accessorKey: "date",
+      header: "Date",
+      sortingFn: (a, b) => {
+        if (a.original.date === null || b.original.date === null) {
+          return 0;
+        }
+
+        return a.original.date.diff(b.original.date);
+      },
+      cell: ({ row }) =>
+        row.original.date ? row.original.date.format("DD/MM/YYYY") : "-",
+    },
+  ];
+}
+
+// Shared helpers
+
+// Display text for a CodeableConcept: coding display, then text, then code
+export function codeableConceptText(
+  concept: CodeableConcept | undefined
+): string {
+  if (!concept) return "";
+  const coding = concept.coding?.find((c) => c.display) ?? concept.coding?.[0];
+  return coding?.display ?? concept.text ?? coding?.code ?? "";
+}
+
+function createTextColumn<T extends TableData>(
+  key: keyof T & string,
+  header: string
+): ColumnDef<T> {
+  return {
+    accessorKey: key,
+    header,
+    cell: ({ row }) =>
+      row.getValue(key) ? (
+        <div className="flex">
+          <div>{row.getValue(key) as string}</div>
+        </div>
+      ) : (
+        "-"
+      ),
+  };
+}
+
+function createTextListColumn<T extends TableData>(
+  key: keyof T & string,
+  header: string
+): ColumnDef<T> {
+  return {
+    accessorKey: key,
+    header,
+    enableSorting: false,
+    cell: ({ row }) => {
+      const values = row.getValue(key) as string[];
+      if (!values || values.length === 0) return "-";
+      return (
+        <div className="flex flex-col gap-1 min-w-32">
+          {values.map((value, index) => (
+            <div key={index}>{value}</div>
+          ))}
+        </div>
+      );
+    },
+  };
+}
+
+function createBadgeColumn<T extends TableData>(
+  key: keyof T & string,
+  header: string
+): ColumnDef<T> {
+  return {
+    accessorKey: key,
+    header,
+    cell: ({ row }) =>
+      row.getValue(key) ? (
+        <Badge variant="outline">{row.getValue(key) as string}</Badge>
+      ) : (
+        "-"
+      ),
+  };
 }
 
 function createSourceServerColumn<T extends TableData>(): ColumnDef<T> {

@@ -20,6 +20,7 @@ import useFetchMedicationRequests from "@/hooks/useFetchMedicationRequests.ts";
 import { nanoid } from "nanoid";
 import dayjs from "dayjs";
 import {
+  codeableConceptText,
   createMedicationRequestTableColumns,
   MedicationRequestTableData,
 } from "@/utils/patientDetails.tsx";
@@ -74,6 +75,19 @@ function PatientMedicationRequests(props: PatientMedicationRequestsProps) {
           id: entry.id ?? nanoid(),
           medication: medicationText,
           status: entry.status ?? "",
+          intent: entry.intent ?? "",
+          dosage: entry.dosageInstruction
+            ?.map((dosage) => dosage.text)
+            .filter(Boolean)
+            .join("; ") ?? "",
+          // Every reasonCode, so a PBS indication shows alongside the clinical reason
+          reason: (entry.reasonCode ?? [])
+            .flatMap((concept) =>
+              concept.coding && concept.coding.length > 1
+                ? concept.coding.map((c) => c.display ?? c.code ?? "")
+                : [codeableConceptText(concept)]
+            )
+            .filter((value, index, all) => value && all.indexOf(value) === index),
           authoredOn: entry.authoredOn
             ? dayjs(entry.authoredOn)
             : entry._authoredOn?.extension?.find(

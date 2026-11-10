@@ -11,11 +11,21 @@ import useSourceFhirServer from "@/hooks/useSourceFhirServer";
 import { useContext } from "react";
 import { PatientContext } from "@/contexts/PatientContext";
 import PatientProfileLoading from "./PatientProfileLoading";
+import PatientCareTeamAndContacts from "./PatientCareTeamAndContacts";
 
 function PatientProfile() {
   const { selectedPatient } = useContext(PatientContext);
 
-  return selectedPatient ? <PatientProfileCard patient={selectedPatient} /> : <PatientProfileLoading />
+  return selectedPatient ? (
+    <div className="grid gap-6 h-fit">
+      <PatientProfileCard patient={selectedPatient} />
+      {selectedPatient.id ? (
+        <PatientCareTeamAndContacts patientId={selectedPatient.id} />
+      ) : null}
+    </div>
+  ) : (
+    <PatientProfileLoading />
+  );
 }
 interface PatientProfileCardProps {
   patient: Patient;
