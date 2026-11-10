@@ -95,6 +95,13 @@ export function humanName(human: FHIRPerson, separator = " "): string {
     name = { family: ["No Name Listed"] };
   }
 
+  // Prefer name.text: per FHIR it is the full display name, and some datasets
+  // (e.g. IUIH) only populate given + text, so building from parts would show
+  // just the first name.
+  if (name.text?.trim()) {
+    return name.text.trim();
+  }
+
   const prefix = toArray(name.prefix || "")
     .filter(Boolean)
     .join(" ");
@@ -109,11 +116,6 @@ export function humanName(human: FHIRPerson, separator = " "): string {
 
   if (name.suffix) {
     out += ", " + name.suffix;
-  }
-
-  // Use name.text if no other name parts are available
-  if ((!out || out === "No Name Listed") && name.text) {
-    return name.text;
   }
 
   return out;
