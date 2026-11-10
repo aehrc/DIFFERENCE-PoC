@@ -21,7 +21,6 @@ import { Patient } from "fhir/r4";
 import usePatientDetails from "@/hooks/usePatientDetails.ts";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import LinkedPatient from "@/components/LinkedPatient.tsx";
-import LaunchButton from "@/pages/PatientSummary/LaunchButton.tsx";
 
 interface PatientCardProps {
   patient: Patient | null;
@@ -65,7 +64,6 @@ function PatientCard(props: PatientCardProps) {
               </div>
               <LinkedPatient patientRefs={patient.link} />
             </div>
-            <LaunchButton />
           </div>
         ) : (
           <div className="flex items-center py-3 gap-6">

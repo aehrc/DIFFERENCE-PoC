@@ -30,7 +30,6 @@ import Settings from "@/pages/Settings/Settings.tsx";
 import EncounterContextProvider from "@/contexts/EncounterContext.tsx";
 import { settingsMenuItems } from "@/utils/settingsMenuItem.tsx";
 import PatientSummary from "@/pages/PatientSummary/PatientSummary.tsx";
-import EmbeddedApp from "@/pages/EmbeddedApp/EmbeddedApp.tsx";
 import AuthCallback from "@/pages/AuthCallback/AuthCallback.tsx";
 import Home from "@/layout/Home.tsx";
 import FhirServerContextProvider from "@/contexts/FhirServerContext.tsx";
@@ -102,10 +101,6 @@ function App() {
         {
           path: "",
           element: <PatientSummary />,
-        },
-        {
-          path: "embedded",
-          element: <EmbeddedApp />,
         },
         {
           path: "settings",

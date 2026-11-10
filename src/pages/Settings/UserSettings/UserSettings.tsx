@@ -13,7 +13,7 @@ function UserSettings() {
         <CardHeader>
           <CardTitle>User</CardTitle>
           <CardDescription>
-            Select the Practitioner to be used as the User launch context
+            Select the practitioner to view as
           </CardDescription>
           <UserTable />
         </CardHeader>

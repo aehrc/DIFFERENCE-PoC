@@ -15,21 +15,15 @@
  * limitations under the License.
  */
 
-import { AppWindow, Settings, User } from "lucide-react";
+import { Settings, User } from "lucide-react";
 import SideBarItem from "@/layout/Sidebar/SideBarItem.tsx";
 import SideBarLogo from "@/layout/Sidebar/SideBarLogo.tsx";
 import useActivePage from "@/hooks/useActivePage.ts";
-import useLauncherQuery from "@/hooks/useLauncherQuery.ts";
 import DataSaverOnIcon from "@mui/icons-material/DataSaverOn";
 import useConfig from "@/hooks/useConfig";
 
 function SideBar() {
   const { activePath, switchActivePage } = useActivePage();
-
-  const { query, launch } = useLauncherQuery();
-
-  const isEmbeddedView = launch.is_embedded_view;
-  const appName = query.app_name !== "" ? query.app_name : "SMART app";
 
   const { branding } = useConfig();
   const { logoUrl } = branding || {};
@@ -39,7 +33,7 @@ function SideBar() {
       <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
         <SideBarLogo
           sidebarItem={{
-            title: "Smart EHR Launcher",
+            title: "Patient Viewer",
             path: "/",
             Icon: logoUrl ? (
               <img src={logoUrl} />
@@ -68,17 +62,6 @@ function SideBar() {
           activePath={activePath}
           onSwitchActivePage={switchActivePage}
         />
-        {isEmbeddedView ? (
-          <SideBarItem
-            sidebarItem={{
-              title: appName,
-              path: "/embedded",
-              Icon: <AppWindow />,
-            }}
-            activePath={activePath}
-            onSwitchActivePage={switchActivePage}
-          />
-        ) : null}
       </nav>
     </aside>
   );

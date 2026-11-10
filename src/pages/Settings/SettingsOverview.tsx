@@ -26,19 +26,13 @@ import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import FormLink from "@/components/FormLink.tsx";
 import useLauncherQuery from "@/hooks/useLauncherQuery.ts";
-import { Separator } from "@/components/ui/separator.tsx";
 import { useContext } from "react";
-import { QuestionnaireContext } from "@/contexts/QuestionnaireContext.tsx";
 import { FhirServerContext } from "@/contexts/FhirServerContext.tsx";
-import useConfig from "@/hooks/useConfig.ts";
-import useLaunchUrl from "@/hooks/useLaunchUrl.ts";
 import useSourceFhirServer from "@/hooks/useSourceFhirServer";
 
 function SettingsOverview() {
   const { serverUrl } = useSourceFhirServer();
-  const { launch, query } = useLauncherQuery();
-  const { formsServerUrl } = useConfig();
-  const { selectedQuestionnaire } = useContext(QuestionnaireContext);
+  const { launch } = useLauncherQuery();
 
   let { fhirUser } = useContext(FhirServerContext)[serverUrl];
 
@@ -49,17 +43,13 @@ function SettingsOverview() {
     : false;
   fhirUser = fhirUser ? fhirUser.replace("Practitioner/", "") : "";
 
-  const launchUrl = useLaunchUrl(query, launch);
-  const clientAppBaseUrl = launchUrl.href.split("/launch")[0];
-
   return (
     <div className="grid gap-6">
       <Card>
         <CardHeader>
           <CardTitle>Overview</CardTitle>
           <CardDescription>
-            Read-only overview of key configurations for the launching
-            application
+            Read-only overview of the current server, patient and user
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -107,40 +97,6 @@ function SettingsOverview() {
                   launch.provider
                     ? `Practitioner/${launch.provider}`
                     : "User not specified"
-                }
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <div className="flex justify-between items-center">
-                <Label>Client App URL</Label>
-                <FormLink
-                  title="Edit in App Launch config"
-                  path="/settings/app-launch"
-                />
-              </div>
-              <Input disabled={true} value={clientAppBaseUrl} />
-            </div>
-
-            <Separator className="my-2" />
-            <div className="grid gap-2">
-              <Label>Questionnaire Repository Server URL</Label>
-              <Input disabled={true} value={formsServerUrl} />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex justify-between items-center">
-                <Label>Questionnaire Context ID (optional)</Label>
-                <FormLink
-                  title="Edit in Questionnaire context config"
-                  path="/settings/questionnaire"
-                />
-              </div>
-              <Input
-                disabled={true}
-                value={
-                  selectedQuestionnaire?.id
-                    ? `Questionnaire/${selectedQuestionnaire.id}`
-                    : "-"
                 }
               />
             </div>
