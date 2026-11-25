@@ -6,7 +6,7 @@
   "oAuthScope": "openid profile user/*.read",
   "oAuthClientId": "difference-poc-viewer",
   "secondaryFhirServer": {
-    "fhirServerUrl": "https://example.iuih.org:8443/fhir",
+    "fhirServerUrl": "https://fhir.iuih.org.au/fhir",
     "authRequired": true,
     "oAuthGrantType": "authorization_code",
     "oAuthScope": "openid profile user/*.read",
