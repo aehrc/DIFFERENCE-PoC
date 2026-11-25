@@ -150,6 +150,9 @@ services:
   # via /etc/hosts. Both then reach Keycloak/gateway on the same public URL.
   proxy:
     image: caddy:2-alpine
+    # Reap zombie processes (the busybox wget healthcheck leaks ssl_client
+    # children; Caddy as PID 1 never reaps them and the pids limit fills up).
+    init: true
     depends_on:
       keycloak:
         condition: service_healthy
